@@ -2,9 +2,9 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Supervision Cergy - SNCF Live</title>
+    <title>Supervision Cergy - Live</title>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
         .header { background: #003366; color: #ffcc00; padding: 20px; text-align: center; font-size: 2.5em; border-bottom: 5px solid #ffcc00; font-weight: bold; }
         .train-list { flex: 1; padding: 20px; }
         .train-row { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #333; font-size: 2.3em; }
@@ -17,52 +17,50 @@
 </head>
 <body>
     <div class="header">CERGY LE HAUT - PROCHAINS DÉPARTS</div>
-    <div class="train-list" id="trains">
-        <div class="status">Connexion au serveur SNCF en cours...</div>
+    <div id="trains">
+        <div class="status">Initialisation du flux temps réel...</div>
     </div>
     <div class="footer">RER A : TRAFIC NORMAL</div>
 
     <script>
-        // ON UTILISE TA CLÉ SNCF (NAVITIA) POUR ÉVITER LE QUOTA BLOQUÉ
-        const SNCF_KEY = "5fb29124-7667-4f65-9f5b-59d084328f41";
-        const GARE_UIC = "stop_area:SNCF:87382655";
+        const TOKEN = "5fb29124-7667-4f65-9f5b-59d084328f41";
+        const GARE = "stop_area:SNCF:87382655";
 
-        async function updateBoard() {
+        async function update() {
             try {
-                // Proxy AllOrigins pour passer le blocage GitHub
-                const api = `https://api.navitia.io/v1/coverage/fr-idf/stop_areas/${GARE_UIC}/departures?duration=3600`;
-                const url = "https://api.allorigins.win/get?url=" + encodeURIComponent(api);
+                // On utilise corsproxy.io qui est plus simple pour passer les clés
+                const api = `https://api.navitia.io/v1/coverage/fr-idf/stop_areas/${GARE}/departures?duration=3600`;
+                const url = "https://corsproxy.io/?" + encodeURIComponent(api);
                 
                 const response = await fetch(url, {
-                    headers: { 'Authorization': SNCF_KEY }
+                    headers: { 'Authorization': TOKEN }
                 });
-                const result = await response.json();
-                const data = JSON.parse(result.contents);
+
+                const data = await response.json();
                 
                 let html = "";
                 if(data.departures) {
-                    data.departures.slice(0, 7).forEach(d => {
-                        const rawTime = d.stop_date_time.departure_date_time.split('T')[1];
-                        const displayTime = rawTime.substring(0,2) + ":" + rawTime.substring(2,4);
-                        const destName = d.display_informations.direction.split('(')[0];
-                        const missionCode = d.display_informations.headsign;
+                    data.departures.slice(0, 8).forEach(d => {
+                        const date = d.stop_date_time.departure_date_time;
+                        const h = date.substring(9, 11) + ":" + date.substring(11, 13);
+                        const dest = d.display_informations.direction.split('(')[0].trim();
+                        const miss = d.display_informations.headsign;
 
-                        html += `
-                        <div class="train-row">
-                            <div class="heure">${displayTime}</div>
-                            <div class="dest">${destName}</div>
-                            <div class="miss">${missionCode}</div>
+                        html += `<div class="train-row">
+                            <div class="heure">${h}</div>
+                            <div class="dest">${dest}</div>
+                            <div class="miss">${miss}</div>
                         </div>`;
                     });
                     document.getElementById('trains').innerHTML = html;
                 }
             } catch (e) {
-                document.getElementById('trains').innerHTML = "<div class='status'>Recherche de signal SNCF...</div>";
+                document.getElementById('trains').innerHTML = "<div class='status'>En attente du signal SNCF...</div>";
             }
         }
 
-        updateBoard();
-        setInterval(updateBoard, 45000);
+        update();
+        setInterval(update, 30000);
     </script>
 </body>
 </html>
