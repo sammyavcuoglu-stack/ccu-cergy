@@ -2,72 +2,71 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Supervision Trafic IDFM</title>
+    <title>Supervision Trafic IDFM V2</title>
     <style>
-        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
         .header { background: #002244; color: #00bfff; padding: 25px; text-align: center; font-size: 2.5em; border-bottom: 5px solid #00bfff; font-weight: bold; }
         .alert-list { flex: 1; padding: 20px; overflow-y: auto; }
-        .alert-card { background: #111; border-left: 12px solid #ffcc00; margin-bottom: 25px; padding: 25px; border-radius: 8px; }
+        .alert-card { background: #111; border-left: 12px solid #ffcc00; margin-bottom: 25px; padding: 25px; border-radius: 8px; border-top: 1px solid #333; }
         .line-badge { background: #ffcc00; color: #000; padding: 8px 18px; font-weight: bold; border-radius: 6px; font-size: 1.4em; margin-right: 20px; }
-        .alert-title { font-size: 1.9em; font-weight: bold; color: #ffcc00; }
-        .alert-text { font-size: 1.5em; line-height: 1.5; color: #ececec; margin-top: 15px; border-top: 1px solid #333; padding-top: 15px; }
-        .status { text-align: center; padding: 100px; font-size: 2em; color: #00ff00; font-weight: bold; }
+        .alert-title { font-size: 1.8em; font-weight: bold; color: #ffcc00; display: block; margin-bottom: 10px; }
+        .alert-text { font-size: 1.5em; line-height: 1.5; color: #ececec; padding-top: 10px; }
+        .status { text-align: center; padding: 100px; font-size: 2em; color: #00ff00; }
     </style>
 </head>
 <body>
-    <div class="header">IDFM - ÉTAT DU RÉSEAU (REQUÊTE GLOBALE)</div>
+    <div class="header">IDFM - ÉTAT DU RÉSEAU (FLUX V2)</div>
     <div class="alert-list" id="alerts">
-        <div class="status">Initialisation du contrat d'interface...</div>
+        <div class="status">Chargement du flux SIRI V2...</div>
     </div>
 
     <script>
-        // TA CLÉ IDFM (PRIM)
-        const API_KEY_IDFM = "7ea58a7fcd5301b0425dd47ea3212ab8640bc0b09c90031a6474e8c6";
+        // TA CLÉ IDFM (Header: apikey)
+        const API_KEY = "7ea58a7fcd5301b0425dd47ea3212ab8640bc0b09c90031a6474e8c6";
 
         async function updateTrafic() {
             try {
-                // Utilisation de l'URL exacte du contrat d'interface
-                const api = `https://prim.iledefrance-mobilites.fr/marketplace/disruptions_bulk/disruptions/v2`;
-                const url = `https://api.allorigins.win/get?url=${encodeURIComponent(api)}`;
+                [span_5](start_span)// Endpoint conforme au contrat d'interface V2[span_5](end_span)
+                const target = "https://prim.iledefrance-mobilites.fr/marketplace/disruptions_bulk/disruptions/v2";
+                const url = `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`;
                 
                 const response = await fetch(url, { 
-                    headers: { 'apikey': API_KEY_IDFM } 
+                    headers: { 'apikey': API_KEY } 
                 });
                 
                 const json = await response.json();
                 const data = JSON.parse(json.contents);
                 
                 let html = "";
-                // Structure basée sur l'API globale v2
-                if(data.Siri && data.Siri.ServiceDelivery && data.Siri.ServiceDelivery.GeneralMessageDelivery) {
+                [span_6](start_span)[span_7](start_span)// Traitement de la structure SIRI GeneralMessage[span_6](end_span)[span_7](end_span)
+                if (data.Siri && data.Siri.ServiceDelivery && data.Siri.ServiceDelivery.GeneralMessageDelivery) {
                     const messages = data.Siri.ServiceDelivery.GeneralMessageDelivery[0].InfoMessage;
                     
                     messages.forEach(msg => {
                         const content = msg.Content;
-                        const messageText = content.MessageText[0].Value;
-                        const line = content.LineRef?.[0]?.Value || "Réseau";
+                        const text = content.MessageText[0].Value;
+                        [span_8](start_span)// On essaie de récupérer le nom de la ligne s'il existe[span_8](end_span)
+                        const lineRef = content.LineRef ? content.LineRef[0].Value : "Réseau";
 
                         html += `
                         <div class="alert-card">
-                            <div class="line-info">
-                                <span class="line-badge">${line}</span>
-                                <span class="alert-title">Incident ou Travaux</span>
-                            </div>
-                            <div class="alert-text">${messageText}</div>
+                            <span class="alert-title"><span class="line-badge">${lineRef}</span> PERTURBATION</span>
+                            <div class="alert-text">${text}</div>
                         </div>`;
                     });
                     
-                    document.getElementById('alerts').innerHTML = html || "<div class='status'>✅ TRAFIC NORMAL SUR LE RÉSEAU</div>";
+                    document.getElementById('alerts').innerHTML = html || "<div class='status'>✅ TRAFIC NORMAL</div>";
                 } else {
-                    document.getElementById('alerts').innerHTML = "<div class='status'>✅ AUCUNE PERTURBATION MAJEURE</div>";
+                    document.getElementById('alerts').innerHTML = "<div class='status'>✅ AUCUN INCIDENT SIGNALÉ</div>";
                 }
             } catch (e) {
-                document.getElementById('alerts').innerHTML = "<div class='status' style='color:#ff4444'>Erreur de liaison IDFM (v2)...</div>";
+                document.getElementById('alerts').innerHTML = "<div class='status' style='color:#ff4444'>Erreur de connexion au flux V2</div>";
             }
         }
 
         updateTrafic();
-        setInterval(updateTrafic, 120000); 
+        [span_9](start_span)// Mise à jour toutes les 2 minutes pour rester sous le quota[span_9](end_span)
+        setInterval(updateTrafic, 120000);
     </script>
 </body>
 </html>
