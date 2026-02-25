@@ -2,134 +2,61 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Supervision Cergy-le-Haut</title>
+    <title>Supervision Cergy</title>
     <style>
-        /* Style spécial pour écran de contrôle */
-        body { 
-            background: #000; 
-            color: #fff; 
-            font-family: 'Segoe UI', sans-serif; 
-            margin: 0; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
-            overflow: hidden; 
-        }
-        
-        .header { 
-            background: #003366; 
-            color: #ffcc00; 
-            padding: 20px; 
-            text-align: center; 
-            font-size: 30px; 
-            font-weight: bold; 
-            border-bottom: 5px solid #ffcc00; 
-            text-transform: uppercase;
-        }
-
-        .train-list { 
-            flex: 1; 
-            padding: 10px; 
-            display: flex; 
-            flex-direction: column;
-        }
-
-        .train-row { 
-            display: flex; 
-            align-items: center;
-            padding: 20px; 
-            border-bottom: 1px solid #333; 
-            font-size: 35px; 
-        }
-
-        .heure { 
-            color: #00ff00; 
-            font-weight: bold; 
-            width: 150px; 
-        }
-
-        .dest { 
-            flex: 1; 
-            font-weight: bold;
-        }
-
-        .miss { 
-            color: #00bfff; 
-            font-size: 0.8em;
-            border: 2px solid #00bfff;
-            padding: 5px 15px;
-            border-radius: 10px;
-        }
-
-        .footer { 
-            background: #28a745; 
-            padding: 25px; 
-            text-align: center; 
-            font-size: 30px; 
-            font-weight: bold; 
-            color: white;
-        }
-
-        .error { color: #ff4444; text-align: center; font-size: 20px; margin-top: 50px; }
+        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        .header { background: #003366; color: #ffcc00; padding: 20px; text-align: center; font-size: 2em; border-bottom: 5px solid #ffcc00; }
+        .train-list { flex: 1; padding: 20px; }
+        .train-row { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #333; font-size: 2em; }
+        .heure { color: #00ff00; font-weight: bold; width: 25%; }
+        .dest { width: 55%; }
+        .miss { color: #00bfff; width: 20%; text-align: right; border: 1px solid #00bfff; border-radius: 8px; padding: 2px 10px; font-size: 0.8em; }
+        .footer { background: #28a745; padding: 20px; text-align: center; font-size: 1.8em; font-weight: bold; }
+        .error { color: #ffcc00; text-align: center; font-size: 1.2em; padding: 20px; }
     </style>
 </head>
 <body>
-
     <div class="header">CERGY LE HAUT - PROCHAINS DÉPARTS</div>
-    
-    <div class="train-list" id="trains">
-        <div style="text-align:center; padding:50px;">Chargement des flux SNCF...</div>
-    </div>
-
-    <div class="footer" id="trafic">
-        RER A : TRAFIC NORMAL
-    </div>
+    <div class="train-list" id="trains">Chargement des flux...</div>
+    <div class="footer">RER A : TRAFIC NORMAL</div>
 
     <script>
-        // Ton identifiant SNCF
         const token = "5fb29124-7667-4f65-9f5b-59d084328f41";
-        // Code de la gare de Cergy-le-Haut
-        const gareUIC = "stop_area:SNCF:87382655";
+        const urlSNCF = "https://api.navitia.io/v1/coverage/fr-idf/stop_areas/stop_area:SNCF:87382655/departures?duration=3600";
         
-        async function loadTrains() {
+        // On utilise un proxy pour casser le blocage de sécurité
+        const proxy = "https://corsproxy.io/?";
+
+        async function load() {
             try {
-                // On utilise l'API Navitia (SNCF Open Data)
-                const url = `https://api.navitia.io/v1/coverage/fr-idf/stop_areas/${gareUIC}/departures?duration=3600`;
-                
-                const response = await fetch(url, { 
+                // On combine le proxy et l'URL
+                const response = await fetch(proxy + encodeURIComponent(urlSNCF), { 
                     headers: { 'Authorization': token } 
                 });
                 
-                if (!response.ok) throw new Error("Erreur API");
-
                 const data = await response.json();
                 let html = "";
-
-                // On prend les 7 prochains départs
-                data.departures.slice(0, 7).forEach(d => {
-                    const info = d.display_informations;
-                    const rawDate = d.stop_date_time.departure_date_time;
-                    // Formatage de l'heure HH:mm
-                    const heure = rawDate.substring(9, 11) + ":" + rawDate.substring(11, 13);
-                    
-                    html += `
-                        <div class="train-row">
-                            <div class="heure">${heure}</div>
-                            <div class="dest">${info.direction.split('(')[0]}</div>
-                            <div class="miss">${info.headsign}</div>
+                
+                if (data.departures) {
+                    data.departures.forEach(d => {
+                        const time = d.stop_date_time.departure_date_time.split('T')[1].substring(0,4);
+                        const timeF = time.substring(0,2) + ":" + time.substring(2,4);
+                        html += `<div class="train-row">
+                            <div class="heure">${timeF}</div>
+                            <div class="dest">${d.display_informations.direction.split('(')[0]}</div>
+                            <div class="miss">${d.display_informations.headsign}</div>
                         </div>`;
-                });
-
-                document.getElementById('trains').innerHTML = html || "<div class='error'>Aucun train prévu</div>";
-
+                    });
+                    document.getElementById('trains').innerHTML = html;
+                } else {
+                    document.getElementById('trains').innerHTML = "<div class='error'>Aucun train trouvé.</div>";
+                }
             } catch (e) {
-                document.getElementById('trains').innerHTML = "<div class='error'>⚠️ Connexion interrompue avec les serveurs SNCF</div>";
+                document.getElementById('trains').innerHTML = "<div class='error'>⚠️ Problème de réseau avec l'API SNCF.</div>";
             }
         }
-
-        // Mise à jour toutes les 30 secondes
-        loadTrains();
-        setInterval(loadTrains, 30000);
+        load();
+        setInterval(load, 30000);
     </script>
 </body>
 </html>
