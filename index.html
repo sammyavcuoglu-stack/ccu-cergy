@@ -6,66 +6,70 @@
     <style>
         body { background: #000; color: #fff; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
         .header { background: #003366; color: #ffcc00; padding: 20px; text-align: center; font-size: 2.5em; border-bottom: 5px solid #ffcc00; font-weight: bold; }
-        .train-list { flex: 1; padding: 20px; overflow-y: auto; }
+        .train-list { flex: 1; padding: 20px; }
         .train-row { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #333; font-size: 2.2em; }
         .heure { color: #00ff00; font-weight: bold; width: 20%; }
         .dest { width: 60%; font-weight: bold; }
         .miss { color: #00bfff; width: 20%; text-align: right; border: 2px solid #00bfff; border-radius: 10px; padding: 5px; font-size: 0.7em; }
         .footer { background: #28a745; padding: 20px; text-align: center; font-size: 2em; font-weight: bold; }
-        .loading { text-align: center; padding: 50px; font-size: 1.5em; color: #ffcc00; }
+        .status { text-align: center; padding: 50px; font-size: 1.5em; color: #ffcc00; }
     </style>
 </head>
 <body>
     <div class="header">CERGY LE HAUT - DÉPARTS</div>
-    <div class="train-list" id="trains">
-        <div class="loading">Recherche des trains en cours...</div>
+    <div id="trains">
+        <div class="status">Chargement en cours...</div>
     </div>
     <div class="footer">RER A : TRAFIC NORMAL</div>
 
     <script>
-        // TA CLÉ IDFM (PRIM)
-        const API_KEY = "3o5rx6lMbaml4H5F4JC1Diqy5x9Sa9Mq";
-        // CODE GARE CERGY-LE-HAUT
+        // ON MET LA CLÉ ICI
+        const MA_CLE = "3o5rx6lMbaml4H5F4JC1Diqy5x9Sa9Mq";
         const GARE_ID = "STIF:StopArea:SP:474151:"; 
 
         async function load() {
+            const container = document.getElementById('trains');
             try {
-                // Utilisation d'un proxy différent pour garantir l'accès
-                const url = "https://api.allorigins.win/get?url=" + encodeURIComponent(`https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=${GARE_ID}`);
+                // MÉTHODE ULTIME : On passe la clé dans l'URL avec apikey=
+                const targetUrl = `https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=${GARE_ID}&apikey=${MA_CLE}`;
                 
-                const response = await fetch(url);
+                // On utilise AllOrigins pour éviter le blocage CORS
+                const finalUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(targetUrl);
+                
+                const response = await fetch(finalUrl);
                 const result = await response.json();
-                const data = JSON.parse(result.contents);
                 
-                const passages = data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit;
+                // On déballe les données
+                const data = JSON.parse(result.contents);
+                const list = data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit;
                 
                 let html = "";
-                passages.forEach(p => {
-                    const j = p.MonitoredVehicleJourney;
-                    // On récupère l'heure prévue
-                    const dateObj = new Date(j.MonitoredCall.AimedDepartureTime);
-                    const heure = dateObj.getHours().toString().padStart(2, '0') + ":" + dateObj.getMinutes().toString().padStart(2, '0');
+                list.slice(0, 8).forEach(item => {
+                    const journey = item.MonitoredVehicleJourney;
+                    const destination = journey.DestinationName[0].value;
+                    const mission = journey.VehicleJourneyName[0].value;
                     
-                    const destination = j.DestinationName[0].value;
-                    const mission = j.VehicleJourneyName?.[0]?.value || "---";
+                    const departureDate = new Date(journey.MonitoredCall.AimedDepartureTime);
+                    const h = departureDate.getHours().toString().padStart(2, '0');
+                    const m = departureDate.getMinutes().toString().padStart(2, '0');
 
                     html += `
                     <div class="train-row">
-                        <div class="heure">${heure}</div>
+                        <div class="heure">${h}:${m}</div>
                         <div class="dest">${destination}</div>
                         <div class="miss">${mission}</div>
                     </div>`;
                 });
-                
-                document.getElementById('trains').innerHTML = html || "<div class='loading'>Aucun train trouvé pour le moment.</div>";
-            } catch (e) {
-                document.getElementById('trains').innerHTML = "<div class='loading' style='color:red'>Erreur de signal : tentative de reconnexion...</div>";
-                console.error(e);
+
+                container.innerHTML = html || "<div class='status'>Aucun train trouvé.</div>";
+
+            } catch (error) {
+                container.innerHTML = "<div class='status' style='color:red'>Erreur : Le serveur IDFM ne reconnaît pas la clé.</div>";
             }
         }
 
         load();
-        setInterval(load, 30000); // Mise à jour toutes les 30 secondes
+        setInterval(load, 30000);
     </script>
 </body>
 </html>
