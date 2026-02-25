@@ -6,55 +6,55 @@
     <style>
         body { background: #000; color: #fff; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
         .header { background: #003366; color: #ffcc00; padding: 20px; text-align: center; font-size: 2em; border-bottom: 5px solid #ffcc00; }
-        .train-list { flex: 1; padding: 20px; }
+        .train-list { flex: 1; padding: 20px; overflow: hidden; }
         .train-row { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #333; font-size: 2em; }
         .heure { color: #00ff00; font-weight: bold; width: 25%; }
         .dest { width: 55%; }
         .miss { color: #00bfff; width: 20%; text-align: right; border: 1px solid #00bfff; border-radius: 8px; padding: 2px 10px; font-size: 0.8em; }
         .footer { background: #28a745; padding: 20px; text-align: center; font-size: 1.8em; font-weight: bold; }
-        .error { color: #ffcc00; text-align: center; font-size: 1.2em; padding: 20px; }
     </style>
 </head>
 <body>
     <div class="header">CERGY LE HAUT - PROCHAINS DÉPARTS</div>
-    <div class="train-list" id="trains">Chargement des flux...</div>
+    <div class="train-list" id="trains">Connexion au serveur IDFM...</div>
     <div class="footer">RER A : TRAFIC NORMAL</div>
 
     <script>
-        const token = "5fb29124-7667-4f65-9f5b-59d084328f41";
-        const urlSNCF = "https://api.navitia.io/v1/coverage/fr-idf/stop_areas/stop_area:SNCF:87382655/departures?duration=3600";
-        
-        // On utilise un proxy pour casser le blocage de sécurité
-        const proxy = "https://corsproxy.io/?";
+        // ON UTILISE TA CLÉ IDFM QUI FONCTIONNAIT AU DÉBUT
+        const API_KEY = "3o5rx6lMbaml4H5F4JC1Diqy5x9Sa9Mq";
+        const GARE_ID = "STIF:StopArea:SP:474151:"; // Code Cergy-le-Haut
 
         async function load() {
             try {
-                // On combine le proxy et l'URL
-                const response = await fetch(proxy + encodeURIComponent(urlSNCF), { 
-                    headers: { 'Authorization': token } 
+                // On passe par un proxy pour éviter le blocage navigateur
+                const url = "https://corsproxy.io/?" + encodeURIComponent(`https://prim.iledefrance-mobilites.fr/marketplace/stop-monitoring?MonitoringRef=${GARE_ID}`);
+                
+                const response = await fetch(url, { 
+                    headers: { "apikey": API_KEY } 
                 });
                 
                 const data = await response.json();
-                let html = "";
+                const passages = data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit;
                 
-                if (data.departures) {
-                    data.departures.forEach(d => {
-                        const time = d.stop_date_time.departure_date_time.split('T')[1].substring(0,4);
-                        const timeF = time.substring(0,2) + ":" + time.substring(2,4);
-                        html += `<div class="train-row">
-                            <div class="heure">${timeF}</div>
-                            <div class="dest">${d.display_informations.direction.split('(')[0]}</div>
-                            <div class="miss">${d.display_informations.headsign}</div>
-                        </div>`;
-                    });
-                    document.getElementById('trains').innerHTML = html;
-                } else {
-                    document.getElementById('trains').innerHTML = "<div class='error'>Aucun train trouvé.</div>";
-                }
+                let html = "";
+                passages.forEach(p => {
+                    const j = p.MonitoredVehicleJourney;
+                    const heure = new Date(j.MonitoredCall.AimedDepartureTime).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+                    const destination = j.DestinationName[0].value;
+                    const mission = j.VehicleJourneyName?.[0]?.value || "---";
+
+                    html += `<div class="train-row">
+                        <div class="heure">${heure}</div>
+                        <div class="dest">${destination}</div>
+                        <div class="miss">${mission}</div>
+                    </div>`;
+                });
+                document.getElementById('trains').innerHTML = html || "Pas de trains prévus";
             } catch (e) {
-                document.getElementById('trains').innerHTML = "<div class='error'>⚠️ Problème de réseau avec l'API SNCF.</div>";
+                document.getElementById('trains').innerHTML = "Erreur de connexion IDFM";
             }
         }
+
         load();
         setInterval(load, 30000);
     </script>
