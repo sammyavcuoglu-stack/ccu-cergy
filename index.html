@@ -2,37 +2,36 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Supervision Stade de France</title>
+    <title>Supervision Gare</title>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
         .header { background: #003366; color: #ffcc00; padding: 20px; text-align: center; font-size: 2.2em; border-bottom: 5px solid #ffcc00; font-weight: bold; }
-        .train-list { flex: 1; padding: 20px; overflow-y: auto; }
-        .train-row { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #333; font-size: 2.2em; }
-        .heure { color: #00ff00; font-weight: bold; width: 20%; }
-        .dest { width: 60%; font-weight: bold; }
-        .miss { color: #00bfff; width: 20%; text-align: right; border: 2px solid #00bfff; border-radius: 10px; padding: 5px; font-size: 0.7em; }
-        .footer { background: #0055c8; padding: 20px; text-align: center; font-size: 2em; font-weight: bold; color: white; }
+        .train-list { flex: 1; padding: 10px; overflow-y: auto; }
+        .train-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #333; font-size: 2em; }
+        .heure { color: #00ff00; font-weight: bold; width: 25%; }
+        .dest { width: 55%; font-weight: bold; }
+        .miss { color: #00bfff; width: 20%; text-align: right; border: 2px solid #00bfff; border-radius: 8px; padding: 3px; font-size: 0.6em; }
         .status { text-align: center; padding: 50px; font-size: 1.5em; color: #ffcc00; }
     </style>
 </head>
 <body>
-    <div class="header">LA PLAINE STADE DE FRANCE - DÉPARTS</div>
+    <div class="header" id="gare-nom">LA PLAINE STADE DE FRANCE</div>
     <div class="train-list" id="trains">
-        <div class="status">Récupération des trains en direct...</div>
+        <div class="status">Scan du réseau en cours...</div>
     </div>
-    <div class="footer">RER B & D : TRAFIC EN DIRECT</div>
 
     <script>
         const TOKEN = "5fb29124-7667-4f65-9f5b-59d084328f41";
-        const GARE = "87164798"; // Code La Plaine
+        // On essaie avec le code de la zone d'arrêt (plus large)
+        const GARE_ID = "stop_area:SNCF:87164798"; 
 
         async function update() {
             try {
-                // On utilise un proxy qui "casse" toutes les protections
-                const target = `https://api.navitia.io/v1/coverage/fr-idf/stop_areas/stop_area:SNCF:${GARE}/departures?duration=7200`;
-                const url = `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`;
+                // On demande les trains sur les 180 prochaines minutes (3h)
+                const api = `https://api.navitia.io/v1/coverage/fr-idf/stop_areas/${GARE_ID}/departures?duration=10800&depth=2`;
+                const url = `https://api.allorigins.win/get?url=${encodeURIComponent(api)}`;
                 
-                const response = await fetch(url);
+                const response = await fetch(url, { headers: { 'Authorization': TOKEN } });
                 const json = await response.json();
                 const data = JSON.parse(json.contents);
                 
@@ -52,10 +51,10 @@
                     });
                     document.getElementById('trains').innerHTML = html;
                 } else {
-                    document.getElementById('trains').innerHTML = "<div class='status'>Aucun train détecté par le serveur.</div>";
+                    document.getElementById('trains').innerHTML = "<div class='status'>Aucun train trouvé sur les 3 prochaines heures.</div>";
                 }
             } catch (e) {
-                document.getElementById('trains').innerHTML = "<div class='status'>Erreur de connexion...</div>";
+                document.getElementById('trains').innerHTML = "<div class='status' style='color:red'>Erreur de liaison.</div>";
             }
         }
 
