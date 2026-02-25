@@ -2,68 +2,69 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Supervision La Plaine Stade de France</title>
+    <title>Supervision La Plaine - LIVE</title>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .header { background: #003366; color: #ffcc00; padding: 20px; text-align: center; font-size: 2.2em; border-bottom: 5px solid #ffcc00; font-weight: bold; }
-        .train-list { flex: 1; padding: 20px; }
-        .train-row { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #333; font-size: 2.2em; }
-        .heure { color: #00ff00; font-weight: bold; width: 20%; }
-        .dest { width: 60%; font-weight: bold; }
-        .miss { color: #00bfff; width: 20%; text-align: right; border: 2px solid #00bfff; border-radius: 10px; padding: 5px; font-size: 0.7em; }
-        .footer { background: #0055c8; padding: 20px; text-align: center; font-size: 2em; font-weight: bold; color: white; }
-        .status { text-align: center; padding: 50px; font-size: 1.5em; color: #ffcc00; }
+        body { 
+            margin: 0; 
+            background: #000; 
+            color: #fff; 
+            font-family: 'Segoe UI', sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+        
+        .header { 
+            background: #003366; 
+            color: #ffcc00; 
+            padding: 15px; 
+            text-align: center; 
+            font-size: 2.2em; 
+            font-weight: bold; 
+            border-bottom: 5px solid #ffcc00;
+        }
+
+        .screen { 
+            flex: 1; 
+            position: relative; 
+            background: #fff; 
+        }
+
+        /* On cadre pour ne voir que le tableau des départs */
+        iframe { 
+            width: 100%; 
+            height: 160%; 
+            border: none; 
+            position: absolute; 
+            top: -220px; 
+        }
+
+        .footer { 
+            background: #0055c8; 
+            padding: 20px; 
+            text-align: center; 
+            font-size: 1.8em; 
+            font-weight: bold; 
+        }
     </style>
 </head>
 <body>
-    <div class="header">LA PLAINE STADE DE FRANCE - DÉPARTS</div>
-    <div class="train-list" id="trains">
-        <div class="status">Chargement des données SNCF...</div>
+
+    <div class="header">LA PLAINE STADE DE FRANCE - DÉPARTS RÉELS</div>
+
+    <div class="screen">
+        <iframe src="https://www.transilien.com/fr/gare/la-plaine-stade-de-france-87164798"></iframe>
     </div>
-    <div class="footer">RER B & D : TRAFIC NORMAL</div>
+
+    <div class="footer">RER B & D : TRAFIC EN DIRECT</div>
 
     <script>
-        // ON UTILISE TON TOKEN SNCF
-        const TOKEN = "5fb29124-7667-4f65-9f5b-59d084328f41";
-        // CODE UIC POUR LA PLAINE STADE DE FRANCE
-        const GARE = "stop_area:SNCF:87164798";
-
-        async function update() {
-            try {
-                const api = `https://api.navitia.io/v1/coverage/fr-idf/stop_areas/${GARE}/departures?duration=3600`;
-                const url = "https://corsproxy.io/?" + encodeURIComponent(api);
-                
-                const response = await fetch(url, {
-                    headers: { 'Authorization': TOKEN }
-                });
-
-                const data = await response.json();
-                
-                let html = "";
-                if(data.departures && data.departures.length > 0) {
-                    data.departures.slice(0, 8).forEach(d => {
-                        const date = d.stop_date_time.departure_date_time;
-                        const h = date.substring(9, 11) + ":" + date.substring(11, 13);
-                        const dest = d.display_informations.direction.split('(')[0].trim();
-                        const miss = d.display_informations.headsign || "---";
-
-                        html += `<div class="train-row">
-                            <div class="heure">${h}</div>
-                            <div class="dest">${dest}</div>
-                            <div class="miss">${miss}</div>
-                        </div>`;
-                    });
-                    document.getElementById('trains').innerHTML = html;
-                } else {
-                    document.getElementById('trains').innerHTML = "<div class='status'>Aucun train prévu dans l'immédiat.</div>";
-                }
-            } catch (e) {
-                document.getElementById('trains').innerHTML = "<div class='status'>Recherche de signal...</div>";
-            }
-        }
-
-        update();
-        setInterval(update, 30000);
+        // Actualise toutes les 60 secondes pour être sûr du direct
+        setTimeout(function(){
+            window.location.reload();
+        }, 60000);
     </script>
+
 </body>
 </html>
