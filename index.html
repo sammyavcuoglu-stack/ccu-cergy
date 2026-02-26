@@ -451,7 +451,22 @@
     <div class="field">
       <label>Gare / Arrêt</label>
       <select id="stationSelect">
-        <option value="">Chargement des gares...</option>
+        <option value="STIF:StopArea:SP:59930:">Sartrouville</option>
+        <option value="STIF:StopArea:SP:71264:">Châtelet–Les Halles</option>
+        <option value="STIF:StopArea:SP:71370:">Gare de Lyon</option>
+        <option value="STIF:StopArea:SP:71009:">Nation</option>
+        <option value="STIF:StopArea:SP:70788:">La Défense</option>
+        <option value="STIF:StopArea:SP:71368:">Auber</option>
+        <option value="STIF:StopArea:SP:71064:">Charles de Gaulle–Étoile</option>
+        <option value="STIF:StopArea:SP:70943:">Nanterre–Préfecture</option>
+        <option value="STIF:StopArea:SP:70813:">Cergy-le-Haut</option>
+        <option value="STIF:StopArea:SP:70823:">Pontoise</option>
+        <option value="STIF:StopArea:SP:70777:">Poissy</option>
+        <option value="STIF:StopArea:SP:71376:">Saint-Germain-en-Laye</option>
+        <option value="STIF:StopArea:SP:70942:">Boissy-Saint-Léger</option>
+        <option value="STIF:StopArea:SP:71375:">Marne-la-Vallée – Chessy</option>
+        <option value="STIF:StopArea:SP:71127:">Saint-Maur–Créteil</option>
+        <option value="custom">— Identifiant personnalisé —</option>
       </select>
     </div>
     <div class="field" id="customField" style="display:none">
@@ -552,7 +567,7 @@
   ──────────────────────────────────────────── */
   async function fetchDepartures(stopId) {
     // API Stop Monitoring SIRI-Lite
-    const url = `${PROXY_BASE}/stop-monitoring?MonitoringRef=${encodeURIComponent(stopId)}&MaximumStopVisits=20`;
+    const url = `${PROXY_BASE}/stop-monitoring?MonitoringRef=${encodeURIComponent(stopId)}`;
 
     const resp = await fetch(url, {
       headers: { 'Accept': 'application/json' }
@@ -772,30 +787,8 @@
   /* ────────────────────────────────────────────
      INIT
   ──────────────────────────────────────────── */
-  loadStations().then(() => {
-    fetchData();
-    startAutoRefresh();
-  });
-
-  async function loadStations() {
-    // Charger les arrêts du RER A via l'API ICAR (Référentiel Arrêts)
-    try {
-      const url = `${PROXY_BASE}/referential/stops?LineRef=${encodeURIComponent(RERA_LINE_ID)}`;
-      const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
-      if (!resp.ok) throw new Error('ICAR indisponible');
-      const data = await resp.json();
-      
-      const stops = data?.stopPoints ?? data?.StopPoint ?? data?.stopArea ?? [];
-      if (!stops.length) throw new Error('Aucun arrêt retourné');
-      
-      const sel = document.getElementById('stationSelect');
-      sel.innerHTML = stops
-        .sort((a,b) => (a.name||a.Name||'').localeCompare(b.name||b.Name||''))
-        .map(s => {
-          const id = s.id || s.Id || s.stopPointRef || '';
-          const name = s.name || s.Name || s.stopName || id;
-          return `<option value="${escapeHtml(id)}">${escapeHtml(name)}</option>`;
-        }).join('') + '<option value="custom">— Identifiant personnalisé —</option>';
+  fetchData();
+  startAutoRefresh();).join('') + '<option value="custom">— Identifiant personnalisé —</option>';
       
       console.log('Gares chargées:', stops.length);
     } catch(e) {
