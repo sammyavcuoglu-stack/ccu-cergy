@@ -447,16 +447,12 @@
 
 <main>
 
-  <div class="api-warning">
-    ⚠️ <strong>Sécurité :</strong> Votre clé API est actuellement intégrée dans ce fichier HTML. Avant de publier sur GitHub public, envisagez d'utiliser un backend proxy pour cacher la clé, ou placez le dépôt en privé.
-  </div>
-
   <div class="controls">
     <div class="field">
       <label>Gare / Arrêt</label>
       <select id="stationSelect">
-        <option value="STIF:StopArea:SP:71370:">Châtelet–Les Halles</option>
-        <option value="STIF:StopArea:SP:71072:">Gare de Lyon</option>
+        <option value="STIF:StopArea:SP:71264:">Châtelet–Les Halles</option>
+        <option value="STIF:StopArea:SP:71370:">Gare de Lyon</option>
         <option value="STIF:StopArea:SP:70565:">Nation</option>
         <option value="STIF:StopArea:SP:71137:">Vincennes</option>
         <option value="STIF:StopArea:SP:71127:">Saint-Maur–Créteil</option>
@@ -529,7 +525,7 @@
   const PROXY_BASE = 'https://rera-proxy.sammy-avcuoglu.workers.dev/proxy';
 
   // ID de la ligne RER A dans le référentiel IDFM
-  const RERA_LINE_ID = 'IDFM:C01742';
+  const RERA_LINE_ID = 'STIF:Line::C01742:';
 
   let refreshTimer = null;
   let countdownTimer = null;
