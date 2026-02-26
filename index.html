@@ -307,7 +307,11 @@
       if (!body) continue;
       allBodies.push(body);
       var low = body.toLowerCase();
-      if (low.indexOf('interrompu') !== -1) hasInterrompu = true;
+      var isInterrompu = low.indexOf('interrompu') !== -1;
+      var isTravaux    = low.indexOf('travaux') !== -1;
+      // Interrompu réel = interrompu SANS travaux
+      if (isInterrompu && !isTravaux) hasInterrompu = true;
+      else if (isInterrompu && isTravaux) hasPerturbe = true; // travaux planifiés = perturbé
       else if (low.indexOf('perturbé') !== -1 || low.indexOf('perturbe') !== -1) hasPerturbe = true;
     }
 
@@ -334,7 +338,11 @@
       var txt  = allBodies[j];
       var low2 = txt.toLowerCase();
       var c    = '';
-      if (low2.indexOf('interrompu') !== -1) c = 'interrompu';
+      var isInt2 = low2.indexOf('interrompu') !== -1;
+      var isTrv2 = low2.indexOf('travaux') !== -1;
+      // Interrompu + travaux = bordure orange (travaux planifiés)
+      if (isInt2 && !isTrv2) c = 'interrompu';
+      else if (isInt2 && isTrv2) c = 'perturbe';
       else if (low2.indexOf('perturbé') !== -1 || low2.indexOf('perturbe') !== -1) c = 'perturbe';
       html += '<div class="comm-msg ' + c + '">' + esc(txt) + '</div>';
     }
