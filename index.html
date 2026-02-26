@@ -103,6 +103,7 @@
     .dep-wait .mins { font-size: 1.1rem; font-weight: 500; color: var(--text); }
 
     .dep-status { text-align: right; }
+    .mission-code { font-size: 0.72rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 3px; letter-spacing: 0.05em; }
     .badge {
       display: inline-block; font-size: 0.65rem; letter-spacing: 0.08em;
       text-transform: uppercase; padding: 0.25rem 0.6rem; border-radius: 4px;
@@ -251,8 +252,16 @@
       if (!dest && journey.DirectionName && journey.DirectionName[0]) dest = journey.DirectionName[0].value || '';
       if (!dest) dest = '—';
 
+      // Code mission (ex: "NANI") et numéro complet (ex: "NANI04")
+      var missionCode = '';
+      if (journey.JourneyNote && journey.JourneyNote[0]) missionCode = journey.JourneyNote[0].value || '';
+      var trainNumber = '';
+      if (journey.VehicleJourneyName && journey.VehicleJourneyName[0]) trainNumber = journey.VehicleJourneyName[0].value || '';
+
       var cancelled = call.DepartureStatus === 'cancelled';
-      var delayed = dept && aimed && (new Date(dept) - new Date(aimed)) > 60000;
+      var delayMs = dept && aimed ? (new Date(dept) - new Date(aimed)) : 0;
+      var delayed = delayMs > 60000;
+      var delayMins = Math.round(delayMs / 60000);
       var mins = minsUntil(dept);
 
       var timeClass = '';
@@ -266,17 +275,36 @@
 
       var badgeHtml = '';
       if (cancelled) badgeHtml = '<span class="badge cancel">Supprimé</span>';
-      else if (delayed) badgeHtml = '<span class="badge late">Retard</span>';
+      else if (delayed) badgeHtml = '<span class="badge late">+' + delayMins + ' min</span>';
       else badgeHtml = '<span class="badge ok">À l\'heure</span>';
+
+      // Code mission affiché sous la destination, en alternance avec le badge
+      var missionHtml = trainNumber ? '<div class="mission-code" data-badge="' + badgeHtml.replace(/"/g, '&quot;') + '" data-i="' + i + '">' + esc(trainNumber) + '</div>' : '';
 
       html += '<div class="dep-row' + (cancelled ? ' cancelled' : '') + '">';
       html += '<div class="dep-time ' + timeClass + '">' + formatTime(dept) + '</div>';
-      html += '<div><div class="dep-dest">' + esc(dest) + '</div></div>';
+      html += '<div><div class="dep-dest">' + esc(dest) + '</div>' + missionHtml + '</div>';
       html += '<div class="dep-wait">' + waitHtml + '</div>';
-      html += '<div class="dep-status">' + badgeHtml + '</div>';
+      html += '<div class="dep-status" id="status-' + i + '">' + badgeHtml + '</div>';
       html += '</div>';
     }
     list.innerHTML = html;
+
+    // Alternance badge statut ↔ code mission toutes les 3 secondes
+    clearInterval(window.missionTimer);
+    window.missionTimer = setInterval(function() {
+      document.querySelectorAll('.mission-code').forEach(function(el) {
+        var idx = el.getAttribute('data-i');
+        var statusEl = document.getElementById('status-' + idx);
+        if (!statusEl) return;
+        var badgeHtml = el.getAttribute('data-badge').replace(/&quot;/g, '"');
+        if (statusEl.innerHTML === el.textContent || statusEl.querySelector('.badge') === null) {
+          statusEl.innerHTML = badgeHtml;
+        } else {
+          statusEl.innerHTML = '<span style="font-family:\'DM Mono\',monospace;font-size:0.85rem;color:var(--muted);letter-spacing:0.05em">' + el.textContent + '</span>';
+        }
+      });
+    }, 3000);
   }
 
   function renderMessages(data) {
