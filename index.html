@@ -42,8 +42,14 @@
     }
     .logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem; }
     .logo-text span { color: var(--red); }
-    .live-indicator { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
-    .live-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+    .live-indicator {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.75rem; color: var(--green); text-transform: uppercase;
+      letter-spacing: 0.1em; font-weight: 500;
+      background: rgba(61,220,132,0.1); border: 1px solid rgba(61,220,132,0.25);
+      padding: 0.4rem 0.9rem; border-radius: 20px;
+    }
+    .live-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; flex-shrink: 0; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
 
     main { max-width: 900px; margin: 0 auto; padding: 2rem; }
@@ -60,25 +66,9 @@
     }
     .station-sub { color: var(--muted); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; }
 
-    .toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1.5rem;
-      gap: 1rem;
-    }
-    .status-info { font-size: 0.8rem; color: var(--muted); }
-    .btn-refresh {
-      background: var(--red); color: white; border: none;
-      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
-      padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer;
-      transition: opacity 0.2s;
-    }
-    .btn-refresh:hover { opacity: 0.85; }
-    .btn-refresh.loading { opacity: 0.5; pointer-events: none; }
+    .toolbar { display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
+    .status-info { font-size: 0.78rem; color: var(--muted); text-align: center; }
 
-    .refresh-bar { height: 2px; background: var(--border); border-radius: 1px; margin-bottom: 1.5rem; overflow: hidden; }
-    .refresh-progress { height: 100%; background: var(--red); border-radius: 1px; transition: width 1s linear; }
 
     .section-title {
       font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em;
@@ -165,11 +155,6 @@
 
   <div class="toolbar">
     <div class="status-info" id="lastUpdate">En attente…</div>
-    <button class="btn-refresh" id="btnRefresh" onclick="fetchData()">↻ Actualiser</button>
-  </div>
-
-  <div class="refresh-bar">
-    <div class="refresh-progress" id="bar" style="width:100%"></div>
   </div>
 
   <div class="section-title">Prochains passages</div>
@@ -192,7 +177,6 @@
   var STOP  = 'STIF:StopArea:SP:43191:';
   var LINE  = 'STIF:Line::C01742:';
 
-  var countdown = 60;
   var timer = null;
 
   function esc(s) {
@@ -212,15 +196,7 @@
     return Math.round((new Date(iso) - new Date()) / 60000);
   }
 
-  function setLoading(on) {
-    var btn = document.getElementById('btnRefresh');
-    btn.className = on ? 'btn-refresh loading' : 'btn-refresh';
-    btn.textContent = on ? 'Chargement…' : '↻ Actualiser';
-  }
-
   function fetchData() {
-    setLoading(true);
-
     var url = PROXY + '/stop-monitoring?MonitoringRef=' + encodeURIComponent(STOP);
 
     fetch(url, { headers: { 'Accept': 'application/json' } })
@@ -235,7 +211,6 @@
         var now = new Date();
         document.getElementById('lastUpdate').textContent =
           'Actualisé à ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-        setLoading(false);
         startCountdown();
       })
       .catch(function(err) {
@@ -263,7 +238,8 @@
     }
 
     var html = '';
-    for (var i = 0; i < visits.length; i++) {
+    var maxVisits = Math.min(visits.length, 5);
+    for (var i = 0; i < maxVisits; i++) {
       var v = visits[i];
       var call = (v.MonitoredVehicleJourney && v.MonitoredVehicleJourney.MonitoredCall) || {};
       var journey = v.MonitoredVehicleJourney || {};
@@ -325,16 +301,9 @@
 
   function startCountdown() {
     clearInterval(timer);
-    countdown = 60;
-    var bar = document.getElementById('bar');
-    timer = setInterval(function() {
-      countdown--;
-      bar.style.width = (countdown / 60 * 100) + '%';
-      if (countdown <= 0) {
-        clearInterval(timer);
-        fetchData();
-      }
-    }, 1000);
+    timer = setTimeout(function() {
+      fetchData();
+    }, 45000);
   }
 
   // Démarrage
