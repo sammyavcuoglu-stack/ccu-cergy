@@ -580,9 +580,14 @@
       label.textContent = 'Fluide';
     }
 
-    // Panneau communication SNCF
+    // Panneau communication SNCF — déduplication par texte identique
+    var seenTextes = {};
     var items = [];
     for (var k = 0; k < messages.length; k++) {
+      var texteKey = messages[k].texte.trim();
+      if (seenTextes[texteKey]) continue; // doublon → on saute
+      seenTextes[texteKey] = true;
+
       var cause2 = messages[k].cause.toLowerCase();
       var txt2   = messages[k].texte.toLowerCase();
       var c = '';
