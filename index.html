@@ -213,6 +213,17 @@
       from { opacity: 0; transform: translateY(-12px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+    .carousel-dots {
+      display: flex; justify-content: center;
+      gap: 0.4rem; margin-top: 0.5rem;
+    }
+    .carousel-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+    .carousel-dot.active { background: var(--muted); }
 
     .timestamp {
       text-align: center; font-size: 0.7rem;
@@ -369,12 +380,16 @@
       clearInterval(carousels[panelId].timer);
       delete carousels[panelId];
     }
-    if (items.length <= 1) return; // pas de carrousel si 1 seul message
+    if (items.length <= 1) return;
     var idx = 0;
     function showSlide(i) {
       var slides = document.querySelectorAll('#' + panelId + ' .carousel-slide');
       for (var s = 0; s < slides.length; s++) slides[s].classList.remove('active');
       if (slides[i]) slides[i].classList.add('active');
+      // Mettre à jour les points
+      var dots = document.querySelectorAll('#' + panelId + ' .carousel-dot');
+      for (var d = 0; d < dots.length; d++) dots[d].classList.remove('active');
+      if (dots[i]) dots[i].classList.add('active');
     }
     showSlide(0);
     carousels[panelId] = {
@@ -412,6 +427,12 @@
       html += '<div class="carousel-slide' + (i === 0 ? ' active' : '') + '">';
       html += '<div class="comm-msg ' + items[i].cls + '">' + items[i].html + '</div>';
       html += '</div>';
+    }
+    html += '</div>';
+    // Points indicateurs
+    html += '<div class="carousel-dots">';
+    for (var j = 0; j < items.length; j++) {
+      html += '<div class="carousel-dot' + (j === 0 ? ' active' : '') + '"></div>';
     }
     html += '</div>';
     comm.innerHTML = html;
