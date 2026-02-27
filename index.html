@@ -197,6 +197,23 @@
     .comm-source-label.sncf { color: #e8a020; }
     .comm-source-label.ratp { color: #6b9fe4; }
 
+    /* CARROUSEL */
+    .carousel-wrap {
+      overflow: hidden;
+      position: relative;
+    }
+    .carousel-slide {
+      display: none;
+      animation: slideDown 0.6s ease;
+    }
+    .carousel-slide.active {
+      display: block;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
     .timestamp {
       text-align: center; font-size: 0.7rem;
       color: var(--muted); flex-shrink: 0; letter-spacing: 0.05em;
@@ -343,39 +360,78 @@
     el.innerHTML = html;
   }
 
+  // Carrousels actifs
+  var carousels = {};
+
+  function startCarousel(panelId, items) {
+    // Arrêter l'ancien carrousel si existant
+    if (carousels[panelId]) {
+      clearInterval(carousels[panelId].timer);
+      delete carousels[panelId];
+    }
+    if (items.length <= 1) return; // pas de carrousel si 1 seul message
+    var idx = 0;
+    function showSlide(i) {
+      var slides = document.querySelectorAll('#' + panelId + ' .carousel-slide');
+      for (var s = 0; s < slides.length; s++) slides[s].classList.remove('active');
+      if (slides[i]) slides[i].classList.add('active');
+    }
+    showSlide(0);
+    carousels[panelId] = {
+      timer: setInterval(function() {
+        idx = (idx + 1) % items.length;
+        showSlide(idx);
+      }, 15000)
+    };
+  }
+
+  function getMsgClass(txt) {
+    var low = txt.toLowerCase();
+    var isInt = low.indexOf('interrompu') !== -1;
+    var isTrv = low.indexOf('travaux') !== -1;
+    if (isInt && !isTrv) return 'interrompu';
+    if (isInt && isTrv)  return 'perturbe';
+    if (low.indexOf('perturbé') !== -1 || low.indexOf('perturbe') !== -1) return 'perturbe';
+    return '';
+  }
+
+  function renderCarousel(panelId, items) {
+    var comm = document.getElementById(panelId);
+    if (!items.length) {
+      comm.innerHTML = '<div class="no-comm">Aucun message en cours.</div>';
+      return;
+    }
+    if (items.length === 1) {
+      // Affichage fixe
+      comm.innerHTML = '<div class="comm-msg ' + items[0].cls + '">' + items[0].html + '</div>';
+      return;
+    }
+    // Carrousel
+    var html = '<div class="carousel-wrap">';
+    for (var i = 0; i < items.length; i++) {
+      html += '<div class="carousel-slide' + (i === 0 ? ' active' : '') + '">';
+      html += '<div class="comm-msg ' + items[i].cls + '">' + items[i].html + '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+    comm.innerHTML = html;
+    startCarousel(panelId, items);
+  }
+
   function renderTraficRATP(data) {
     var msgs = [];
     try {
       msgs = data.Siri.ServiceDelivery.GeneralMessageDelivery[0].InfoMessage || [];
     } catch(e) {}
 
-    var comm = document.getElementById('panel-comm-ratp');
-    var allBodies = [];
-
+    var items = [];
     for (var i = 0; i < msgs.length; i++) {
       var body = '';
       try { body = msgs[i].Content.Message[0].MessageText.value; } catch(e) {}
       if (!body) continue;
-      allBodies.push(body);
+      items.push({ cls: getMsgClass(body), html: esc(body) });
     }
-
-    if (!allBodies.length) {
-      comm.innerHTML = '<div class="no-comm">Aucun message en cours.</div>';
-      return;
-    }
-    var html = '';
-    for (var j = 0; j < allBodies.length; j++) {
-      var txt  = allBodies[j];
-      var low2 = txt.toLowerCase();
-      var c    = '';
-      var isInt2 = low2.indexOf('interrompu') !== -1;
-      var isTrv2 = low2.indexOf('travaux') !== -1;
-      if (isInt2 && !isTrv2) c = 'interrompu';
-      else if (isInt2 && isTrv2) c = 'perturbe';
-      else if (low2.indexOf('perturbé') !== -1 || low2.indexOf('perturbe') !== -1) c = 'perturbe';
-      html += '<div class="comm-msg ' + c + '">' + esc(txt) + '</div>';
-    }
-    comm.innerHTML = html;
+    renderCarousel('panel-comm-ratp', items);
   }
 
   function renderTraficSNCF(data) {
@@ -440,11 +496,7 @@
     }
 
     // Panneau communication SNCF
-    if (!messages.length) {
-      comm.innerHTML = '<div class="no-comm">Aucun message en cours.</div>';
-      return;
-    }
-    var html = '';
+    var items = [];
     for (var k = 0; k < messages.length; k++) {
       var cause2 = messages[k].cause.toLowerCase();
       var txt2   = messages[k].texte.toLowerCase();
@@ -452,11 +504,12 @@
       if (txt2.indexOf('interrompu') !== -1 && cause2 !== 'travaux') c = 'interrompu';
       else if (cause2 === 'travaux') c = 'perturbe';
       else c = 'perturbe';
-      html += '<div class="comm-msg ' + c + '">';
-      if (messages[k].titre) html += '<strong>' + esc(messages[k].titre) + '</strong><br>';
-      html += esc(messages[k].texte) + '</div>';
+      var h = '';
+      if (messages[k].titre) h += '<strong>' + esc(messages[k].titre) + '</strong><br>';
+      h += esc(messages[k].texte);
+      items.push({ cls: c, html: h });
     }
-    comm.innerHTML = html;
+    renderCarousel('panel-comm-sncf', items);
   }
 
   function startCountdown() {
