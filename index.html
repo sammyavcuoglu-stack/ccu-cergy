@@ -289,7 +289,7 @@
       var aimed = call.AimedDepartureTime;
       if (!dept || !aimed) continue;
       var delayMins = Math.round((new Date(dept) - new Date(aimed)) / 60000);
-      if (delayMins < 1) continue;
+      if (delayMins <= 3) continue;
       var mission = '';
       try { mission = j2.VehicleJourneyName[0].value; } catch(e) {}
       if (!mission) try { mission = j2.JourneyNote[0].value; } catch(e) {}
