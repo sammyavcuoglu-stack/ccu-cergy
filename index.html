@@ -114,20 +114,27 @@
     .panel-body { padding: 1.2rem; flex: 1; overflow: hidden; }
 
     /* RETARDS */
+    .delay-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 1.5rem;
+      height: 100%;
+      align-content: start;
+    }
     .delay-row {
-      display: flex; align-items: baseline; gap: 1rem;
-      padding: 0.75rem 0;
+      display: flex; align-items: baseline; gap: 0.6rem;
+      padding: 0.5rem 0;
       border-bottom: 1px solid var(--border);
     }
     .delay-row:last-child { border-bottom: none; }
     .delay-mission {
       font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 800; font-size: 3.5vw;
-      color: white; letter-spacing: 0.03em; min-width: 10vw;
+      font-weight: 800; font-size: 2.6vw;
+      color: white; letter-spacing: 0.03em; min-width: 7vw;
     }
     .delay-mins {
       font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700; font-size: 3.2vw;
+      font-weight: 700; font-size: 2.4vw;
     }
     .delay-mins.orange { color: var(--orange); }
     .delay-mins.red    { color: var(--red); }
@@ -306,6 +313,13 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  // Décode toutes les entités HTML (&#233; → é, &eacute; → é, etc.)
+  function decodeHtml(str) {
+    var txt = document.createElement('textarea');
+    txt.innerHTML = str;
+    return txt.value;
+  }
+
   function fetchData() {
     // Fetch toutes les gares en parallèle
     retardsParGare = {};
@@ -383,15 +397,22 @@
       el.innerHTML = '<div class="no-delay"><div class="no-delay-dot"></div>Aucun retard détecté</div>';
       return;
     }
-    var html = '';
-    for (var k = 0; k < retards.length; k++) {
-      var cls = retards[k].delay >= 10 ? 'red' : 'orange';
-      html += '<div class="delay-row">';
-      html += '<div class="delay-mission">' + esc(retards[k].mission) + '</div>';
-      html += '<div class="delay-mins ' + cls + '">+' + retards[k].delay + ' min</div>';
-      html += '</div>';
+    // Répartir en 2 colonnes
+    var mid  = Math.ceil(retards.length / 2);
+    var col1 = retards.slice(0, mid);
+    var col2 = retards.slice(mid);
+    function buildCol(arr) {
+      var h = '';
+      for (var k = 0; k < arr.length; k++) {
+        var cls = arr[k].delay >= 10 ? 'red' : 'orange';
+        h += '<div class="delay-row">';
+        h += '<div class="delay-mission">' + esc(arr[k].mission) + '</div>';
+        h += '<div class="delay-mins ' + cls + '">+' + arr[k].delay + ' min</div>';
+        h += '</div>';
+      }
+      return h;
     }
-    el.innerHTML = html;
+    el.innerHTML = '<div class="delay-cols"><div>' + buildCol(col1) + '</div><div>' + buildCol(col2) + '</div></div>';
   }
 
   // Carrousels actifs
@@ -434,6 +455,11 @@
   }
 
   function renderCarousel(panelId, items) {
+    // Toujours arrêter l'ancien carrousel avant de réécrire le DOM
+    if (carousels[panelId]) {
+      clearInterval(carousels[panelId].timer);
+      delete carousels[panelId];
+    }
     var comm = document.getElementById(panelId);
     if (!items.length) {
       comm.innerHTML = '<div class="no-comm">Aucun message en cours.</div>';
@@ -509,8 +535,9 @@
         var ch = (msgs[m].channel && msgs[m].channel.name) || '';
         if (ch === 'titre') titre = msgs[m].text || '';
         if (ch === 'moteur' && !texte) {
-          // Nettoyer les balises HTML
-          texte = (msgs[m].text || '').replace(/<[^>]+>/g, ' ').replace(/&amp;/g,'&').replace(/&eacute;/g,'é').replace(/&#233;/g,'é').replace(/&#224;/g,'à').replace(/\s+/g,' ').trim();
+          // Nettoyer les balises HTML puis décoder toutes les entités
+          var raw = (msgs[m].text || '').replace(/<[^>]+>/g, ' ');
+          texte = decodeHtml(raw).replace(/\s+/g, ' ').trim();
         }
       }
       var affichage = texte || titre;
@@ -521,9 +548,20 @@
       // Déterminer état trafic basé SNCF
       var cause = (d.cause || '').toLowerCase();
       var effect = ((d.severity && d.severity.effect) || '').toLowerCase();
-      if (cause === 'travaux') continue; // travaux planifiés → pas d'impact état trafic
-      if (effect === 'no_service' || affichage.toLowerCase().indexOf('interrompu') !== -1) hasInterrompu = true;
-      else hasPerturbe = true;
+      // Travaux planifiés → pas d'impact état trafic, mais on garde le message
+      if (cause === 'travaux') continue;
+      // Incident réel : on évalue la sévérité
+      var low = affichage.toLowerCase();
+      if (effect === 'no_service' || low.indexOf('interrompu') !== -1) {
+        hasInterrompu = true;
+      } else if (effect === 'significant_delays' || effect === 'reduced_service' ||
+                 low.indexOf('perturbé') !== -1 || low.indexOf('perturbe') !== -1 ||
+                 low.indexOf('très perturbé') !== -1) {
+        hasPerturbe = true;
+      } else {
+        // Toute autre perturbation non-travaux = au moins perturbé
+        hasPerturbe = true;
+      }
     }
 
     // Mettre à jour état du trafic (basé SNCF uniquement)
