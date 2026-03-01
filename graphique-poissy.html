@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Graphique Poissy — Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:     #1e2330;
+      --bg2:    #252b3b;
+      --bg3:    #2d3447;
+      --border: #353d52;
+      --text:   #e8eaf0;
+      --muted:  #6b7494;
+      --green:  #2ecc71;
+      --orange: #e67e22;
+      --red:    #e74c3c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      gap: 1.5rem;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .header h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 1.3rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: white;
+    }
+    .horloge {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 2.2rem;
+      color: white;
+      letter-spacing: 0.05em;
+    }
+    .refresh-info {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── PLAN ── */
+    .plan {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.8rem 2.5rem 1.5rem;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    .sens-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    /* Rail */
+    .rail {
+      display: flex;
+      align-items: center;
+      position: relative;
+      height: 90px;
+    }
+    .rail::before {
+      content: '';
+      position: absolute;
+      left: 40px; right: 40px;
+      top: 50%;
+      height: 3px;
+      background: var(--border);
+      z-index: 0;
+    }
+
+    /* Gare */
+    .gare {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+      gap: 3px;
+    }
+
+    /* Badge mission + retard AU DESSUS */
+    .train-badge {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 0.6rem;
+      letter-spacing: 0.03em;
+      background: #1a3a8f;
+      color: white;
+      padding: 2px 5px;
+      border-radius: 3px;
+      white-space: nowrap;
+      min-height: 16px;
+      min-width: 10px;
+      text-align: center;
+      transition: opacity 0.3s, background 0.3s;
+      opacity: 0;
+    }
+    .train-badge.visible       { opacity: 1; }
+    .train-badge.a-lheure      { background: #1a6b3a; }
+    .train-badge.en-retard     { background: var(--red); }
+    .train-badge.chargement    { background: #333; opacity: 0.6; }
+
+    /* Point gare */
+    .gare-point {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      border: 2px solid var(--muted);
+      background: var(--bg);
+      transition: background 0.5s, border-color 0.5s;
+    }
+    .gare-point.vert    { background: var(--green);  border-color: var(--green); }
+    .gare-point.orange  { background: var(--orange); border-color: var(--orange); }
+    .gare-point.rouge   { background: var(--red);    border-color: var(--red); animation: pulse 1.2s ease-in-out infinite; }
+    .gare-point.gris    { background: #333; border-color: #444; border-style: dashed; }
+    .gare-point.load    { background: #2a3050; border-color: #3a4060; }
+
+    @keyframes pulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:0.5; transform:scale(0.82); }
+    }
+
+    /* Infos SOUS le point : heure + attente */
+    .gare-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      min-height: 28px;
+    }
+    .gare-heure {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-align: center;
+      min-height: 13px;
+      transition: color 0.4s;
+    }
+    .gare-attente {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 0.65rem;
+      text-align: center;
+      min-height: 12px;
+      transition: color 0.4s;
+    }
+    .vert   { color: var(--green); }
+    .orange { color: var(--orange); }
+    .rouge  { color: var(--red); }
+    .muted  { color: var(--muted); }
+
+    .rail-sep { height: 6px; }
+
+    /* Noms gares */
+    .noms {
+      display: flex;
+      margin-top: 0.5rem;
+    }
+    .nom {
+      flex: 1;
+      text-align: center;
+      font-size: 0.62rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .nom.principale { color: var(--text); font-weight: 700; }
+    .nom.terminus   { color: #555; font-style: italic; }
+
+    /* ── DEBUG BOX ── */
+    .debug-box {
+      width: 100%;
+      max-width: 860px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.8rem 1.2rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.8;
+      min-height: 50px;
+      font-family: monospace;
+    }
+    .debug-ok    { color: var(--green); }
+    .debug-warn  { color: var(--orange); }
+    .debug-error { color: var(--red); font-weight: bold; }
+    .debug-info  { color: var(--text); }
+
+    /* ── LÉGENDE ── */
+    .legende {
+      display: flex;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+    .leg-item { display: flex; align-items: center; gap: 0.4rem; }
+    .leg-dot { width: 12px; height: 12px; border-radius: 2px; border: 2px solid currentColor; }
+    .leg-dot.vert    { color: var(--green);  background: var(--green); }
+    .leg-dot.orange  { color: var(--orange); background: var(--orange); }
+    .leg-dot.rouge   { color: var(--red);    background: var(--red); }
+    .leg-dot.gris    { color: #444; background: #333; border-style: dashed; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Graphique Poissy — Page de test</h1>
+  <div class="horloge" id="horloge">--:--</div>
+  <div class="refresh-info" id="refresh-info">Chargement…</div>
+</div>
+
+<!-- PLAN DE LIGNE -->
+<div class="plan">
+
+  <!-- TRAIT 1 : Sens Paris → -->
+  <div class="sens-label">→ Trait 1 — Sens Paris (Saint-Lazare)</div>
+  <div class="rail">
+
+    <!-- Poissy -->
+    <div class="gare">
+      <div class="train-badge" id="bdg-1-poissy">…</div>
+      <div class="gare-point load" id="pt-1-poissy"></div>
+      <div class="gare-info">
+        <div class="gare-heure muted" id="heure-1-poissy">--:--</div>
+        <div class="gare-attente muted" id="att-1-poissy">…</div>
+      </div>
+    </div>
+
+    <!-- Achères Gc -->
+    <div class="gare">
+      <div class="train-badge" id="bdg-1-agc">…</div>
+      <div class="gare-point load" id="pt-1-agc"></div>
+      <div class="gare-info">
+        <div class="gare-heure muted" id="heure-1-agc">--:--</div>
+        <div class="gare-attente muted" id="att-1-agc">…</div>
+      </div>
+    </div>
+
+    <!-- Maisons-Laffitte -->
+    <div class="gare">
+      <div class="train-badge" id="bdg-1-ml">…</div>
+      <div class="gare-point load" id="pt-1-ml"></div>
+      <div class="gare-info">
+        <div class="gare-heure muted" id="heure-1-ml">--:--</div>
+        <div class="gare-attente muted" id="att-1-ml">…</div>
+      </div>
+    </div>
+
+    <!-- Sartrouville -->
+    <div class="gare">
+      <div class="train-badge" id="bdg-1-sartr">…</div>
+      <div class="gare-point load" id="pt-1-sartr"></div>
+      <div class="gare-info">
+        <div class="gare-heure muted" id="heure-1-sartr">--:--</div>
+        <div class="gare-attente muted" id="att-1-sartr">…</div>
+      </div>
+    </div>
+
+    <!-- Houilles -->
+    <div class="gare">
+      <div class="train-badge" id="bdg-1-houilles">…</div>
+      <div class="gare-point load" id="pt-1-houilles"></div>
+      <div class="gare-info">
+        <div class="gare-heure muted" id="heure-1-houilles">--:--</div>
+        <div class="gare-attente muted" id="att-1-houilles">…</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="rail-sep"></div>
+
+  <!-- TRAIT 2 : Sens Poissy ← -->
+  <div class="rail">
+
+    <!-- Houilles -->
+    <div class="gare">
+      <div class="train-badge" id="bdg-2-houilles">…</div>
+      <div class="gare-point load" id="pt-2-houilles"></div>
+      <div class="gare-info">
+        <div class="gare-heure muted" id="heure-2-houilles">--:--</div>
+        <div class="gare-attente muted" id="att-2-houilles">…</div>
+      </div>
+    </div>
+
+    <!-- Sartrouville -->
+    <div class="gare">
+      <div class="train-badge" id="bdg-2-sartr">…</div>
+      <div class="gare-point load" id="pt-2-sartr"></div>
+      <div class="gare-info">
+        <div class="gare-heure muted" id="heure-2-sartr">--:--</div>
+        <div class="gare-attente muted" id="att-2-sartr">…</div>
+      </div>
+    </div>
+
+    <!-- Maisons-Laffitte -->
+    <div class="gare">
+      <div class="train-badge" id="bdg-2-ml">…</div>
+      <div class="gare-point load" id="pt-2-ml"></div>
+      <div class="gare-info">
+        <div class="gare-heure muted" id="heure-2-ml">--:--</div>
+        <div class="gare-attente muted" id="att-2-ml">…</div>
+      </div>
+    </div>
+
+    <!-- Achères Gc -->
+    <div class="gare">
+      <div class="train-badge" id="bdg-2-agc">…</div>
+      <div class="gare-point load" id="pt-2-agc"></div>
+      <div class="gare-info">
+        <div class="gare-heure muted" id="heure-2-agc">--:--</div>
+        <div class="gare-attente muted" id="att-2-agc">…</div>
+      </div>
+    </div>
+
+    <!-- Poissy terminus -->
+    <div class="gare">
+      <div class="train-badge" style="opacity:0"></div>
+      <div class="gare-point gris" id="pt-2-poissy"></div>
+      <div class="gare-info">
+        <div class="gare-heure muted">—</div>
+        <div class="gare-attente muted">Terminus</div>
+      </div>
+    </div>
+
+  </div>
+  <div class="sens-label" style="text-align:right; margin-top:0.3rem;">← Trait 2 — Sens Poissy</div>
+
+  <!-- NOMS -->
+  <div class="noms">
+    <div class="nom">Poissy</div>
+    <div class="nom">Achères<br>Gc</div>
+    <div class="nom principale">Maisons<br>Laffitte</div>
+    <div class="nom">Sartrouville</div>
+    <div class="nom principale">Houilles<br>Carr. s/S</div>
+  </div>
+
+</div>
+
+<!-- DEBUG -->
+<div class="debug-box" id="debug">
+  <span class="debug-info">⏳ Connexion à l'API en cours…</span>
+</div>
+
+<!-- LÉGENDE -->
+<div class="legende">
+  <div class="leg-item"><div class="leg-dot vert"></div> Normal (&lt;5 min attente)</div>
+  <div class="leg-item"><div class="leg-dot orange"></div> Attention (5–9 min)</div>
+  <div class="leg-item"><div class="leg-dot rouge"></div> Alerte (≥10 min)</div>
+  <div class="leg-item"><div class="leg-dot gris"></div> Terminus</div>
+</div>
+
+<script>
+  // ══════════════════════════════════════════════
+  //  CONFIG
+  // ══════════════════════════════════════════════
+  var PROXY = 'https://rera-proxy.sammy-avcuoglu.workers.dev/proxy';
+  var LINE  = 'STIF:Line::C01742:'; // RER A
+
+  // IDs IDFM des arrêts (StopArea)
+  var STOPS = {
+    poissy:   'STIF:StopArea:SP:59368:',
+    agc:      'STIF:StopArea:SP:59325:',
+    ml:       'STIF:StopArea:SP:43215:',
+    sartr:    'STIF:StopArea:SP:43191:',
+    houilles: 'STIF:StopArea:SP:43082:'
+  };
+
+  // Destination filtre par gare (sens Paris)
+  // On garde uniquement les trains dont la destination contient ces mots-clés
+  var FILTRE_PARIS = {
+    poissy:   ['maisons', 'laffitte', 'nanterre', 'paris', 'boissy', 'marne', 'torcy'],
+    agc:      ['maisons', 'laffitte', 'nanterre', 'paris', 'boissy', 'marne', 'torcy'],
+    ml:       ['nanterre', 'paris', 'boissy', 'marne', 'torcy', 'vincennes', 'nation'],
+    sartr:    ['nanterre', 'paris', 'boissy', 'marne', 'torcy', 'vincennes', 'nation'],
+    houilles: ['nanterre', 'paris', 'boissy', 'marne', 'torcy', 'vincennes', 'nation']
+  };
+
+  // Filtre sens Poissy
+  var FILTRE_POISSY = ['poissy', 'conflans', 'cergy'];
+
+  var debugLines = [];
+
+  // ══════════════════════════════════════════════
+  //  HORLOGE
+  // ══════════════════════════════════════════════
+  function majHorloge() {
+    var now = new Date();
+    var h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+    document.getElementById('horloge').textContent =
+      (h<10?'0'+h:h)+':'+(m<10?'0'+m:m)+':'+(s<10?'0'+s:s);
+  }
+  setInterval(majHorloge, 1000);
+  majHorloge();
+
+  // ══════════════════════════════════════════════
+  //  UTILITAIRES
+  // ══════════════════════════════════════════════
+  function formatHeure(isoStr) {
+    if (!isoStr) return '--:--';
+    var d = new Date(isoStr);
+    var h = d.getHours(), m = d.getMinutes();
+    return (h<10?'0'+h:h)+'h'+(m<10?'0'+m:m);
+  }
+
+  function minutesDepuis(isoStr) {
+    if (!isoStr) return null;
+    var diff = (new Date(isoStr) - new Date()) / 60000;
+    return Math.round(diff);
+  }
+
+  function couleur(attMin) {
+    if (attMin === null) return 'muted';
+    if (attMin < 0)  return 'muted';
+    if (attMin < 5)  return 'vert';
+    if (attMin < 10) return 'orange';
+    return 'rouge';
+  }
+
+  function destinationMatch(destName, filtres) {
+    if (!destName) return false;
+    var d = destName.toLowerCase();
+    for (var i = 0; i < filtres.length; i++) {
+      if (d.indexOf(filtres[i]) !== -1) return true;
+    }
+    return false;
+  }
+
+  function majGareDOM(trait, gare, data) {
+    var pt    = document.getElementById('pt-'    + trait + '-' + gare);
+    var badge = document.getElementById('bdg-'   + trait + '-' + gare);
+    var heure = document.getElementById('heure-' + trait + '-' + gare);
+    var att   = document.getElementById('att-'   + trait + '-' + gare);
+    if (!pt || !badge || !heure || !att) return;
+
+    if (!data) {
+      // Pas de données
+      pt.className = 'gare-point load';
+      badge.className = 'train-badge';
+      badge.textContent = '';
+      heure.textContent = '--:--';
+      heure.className = 'gare-heure muted';
+      att.textContent = 'Pas de données';
+      att.className = 'gare-attente muted';
+      return;
+    }
+
+    var attMin = data.attente;
+    var etat   = couleur(attMin);
+
+    // Point
+    pt.className = 'gare-point ' + etat;
+
+    // Badge mission + retard
+    var badgeTxt = data.mission || '?';
+    if (data.retard > 0) badgeTxt += ' +' + data.retard + 'min';
+    badge.textContent = badgeTxt;
+    badge.className = 'train-badge visible ' + (data.retard > 0 ? 'en-retard' : 'a-lheure');
+
+    // Heure estimée
+    heure.textContent = data.heureEstimee;
+    heure.className = 'gare-heure ' + etat;
+
+    // Attente
+    if (attMin !== null && attMin >= 0) {
+      att.textContent = attMin <= 0 ? 'À quai' : attMin + ' min';
+    } else {
+      att.textContent = 'Parti';
+    }
+    att.className = 'gare-attente ' + etat;
+  }
+
+  // ══════════════════════════════════════════════
+  //  FETCH UNE GARE
+  // ══════════════════════════════════════════════
+  function fetchGare(stopId, filtresDest) {
+    return fetch(PROXY + '/stop-monitoring?MonitoringRef=' + encodeURIComponent(stopId), { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var visits = [];
+        try { visits = data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit || []; } catch(e) {}
+
+        // Filtrer : RER A uniquement + destination correcte
+        var candidats = [];
+        for (var i = 0; i < visits.length; i++) {
+          var v = visits[i];
+          var j = v.MonitoredVehicleJourney || {};
+          var call = j.MonitoredCall || {};
+
+          // Filtre ligne RER A
+          var lineRef = '';
+          try { lineRef = j.LineRef.value; } catch(e) {}
+          if (lineRef !== LINE) continue;
+
+          // Filtre destination
+          var destName = '';
+          try { destName = j.DestinationName[0].value; } catch(e) {}
+          if (!destinationMatch(destName, filtresDest)) continue;
+
+          // Heure estimée de départ
+          var dept  = call.ExpectedDepartureTime || call.AimedDepartureTime;
+          var aimed = call.AimedDepartureTime;
+          if (!dept) continue;
+
+          var attMin = minutesDepuis(dept);
+          if (attMin !== null && attMin < -1) continue; // déjà parti depuis plus d'1 min
+
+          // Retard
+          var retard = 0;
+          if (dept && aimed) {
+            retard = Math.max(0, Math.round((new Date(dept) - new Date(aimed)) / 60000));
+          }
+
+          // Mission
+          var mission = '';
+          try { mission = j.VehicleJourneyName[0].value; } catch(e) {}
+          if (!mission) try { mission = j.JourneyNote[0].value; } catch(e) {}
+
+          candidats.push({
+            mission:      mission,
+            heureEstimee: formatHeure(dept),
+            attente:      attMin,
+            retard:       retard,
+            destination:  destName
+          });
+        }
+
+        // Trier par heure d'arrivée estimée (le plus tôt en premier)
+        candidats.sort(function(a, b) { return a.attente - b.attente; });
+
+        // Retourner uniquement le prochain
+        return candidats.length > 0 ? candidats[0] : null;
+      });
+  }
+
+  // ══════════════════════════════════════════════
+  //  FETCH TOUTES LES GARES
+  // ══════════════════════════════════════════════
+  function fetchAll() {
+    debugLines = [];
+    document.getElementById('refresh-info').textContent = 'Actualisation…';
+
+    var taches = [
+      // TRAIT 1 — Sens Paris
+      { trait:'1', gare:'poissy',   stop: STOPS.poissy,   filtres: FILTRE_PARIS.poissy },
+      { trait:'1', gare:'agc',      stop: STOPS.agc,      filtres: FILTRE_PARIS.agc },
+      { trait:'1', gare:'ml',       stop: STOPS.ml,       filtres: FILTRE_PARIS.ml },
+      { trait:'1', gare:'sartr',    stop: STOPS.sartr,    filtres: FILTRE_PARIS.sartr },
+      { trait:'1', gare:'houilles', stop: STOPS.houilles, filtres: FILTRE_PARIS.houilles },
+      // TRAIT 2 — Sens Poissy
+      { trait:'2', gare:'houilles', stop: STOPS.houilles, filtres: FILTRE_POISSY },
+      { trait:'2', gare:'sartr',    stop: STOPS.sartr,    filtres: FILTRE_POISSY },
+      { trait:'2', gare:'ml',       stop: STOPS.ml,       filtres: FILTRE_POISSY },
+      { trait:'2', gare:'agc',      stop: STOPS.agc,      filtres: FILTRE_POISSY }
+    ];
+
+    var promesses = taches.map(function(t) {
+      return fetchGare(t.stop, t.filtres)
+        .then(function(data) {
+          majGareDOM(t.trait, t.gare, data);
+          var nom = (t.trait === '1' ? '→' : '←') + ' ' + t.gare;
+          if (data) {
+            debugLines.push('<span class="debug-ok">✅ ' + nom + ' : ' + data.mission +
+              (data.retard > 0 ? ' <span class="debug-warn">+' + data.retard + 'min</span>' : ' à l\'heure') +
+              ' — ' + data.heureEstimee + ' (' + data.attente + ' min) → ' + data.destination + '</span>');
+          } else {
+            debugLines.push('<span class="debug-warn">⚠️ ' + nom + ' : aucun train trouvé</span>');
+          }
+        })
+        .catch(function(err) {
+          majGareDOM(t.trait, t.gare, null);
+          debugLines.push('<span class="debug-error">❌ ' + t.gare + ' : erreur — ' + err.message + '</span>');
+        });
+    });
+
+    Promise.all(promesses).then(function() {
+      var now = new Date();
+      var h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+      var ts = (h<10?'0'+h:h)+':'+(m<10?'0'+m:m)+':'+(s<10?'0'+s:s);
+      document.getElementById('refresh-info').textContent = 'Actualisé à ' + ts + ' — prochain dans 45s';
+      document.getElementById('debug').innerHTML = debugLines.join('<br>') ||
+        '<span class="debug-info">Aucune donnée reçue</span>';
+    });
+
+    setTimeout(fetchAll, 45000);
+  }
+
+  // ══════════════════════════════════════════════
+  //  DÉMARRAGE
+  // ══════════════════════════════════════════════
+  fetchAll();
+</script>
+</body>
+</html>
