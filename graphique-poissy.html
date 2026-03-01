@@ -143,14 +143,14 @@
     .train-badge {
       font-family: 'Barlow Condensed', sans-serif;
       font-weight: 800;
-      font-size: 0.8rem;
+      font-size: 1.05rem;
       letter-spacing: 0.03em;
       background: #1a3a8f;
       color: white;
-      padding: 3px 8px;
-      border-radius: 4px;
+      padding: 4px 10px;
+      border-radius: 5px;
       white-space: nowrap;
-      min-height: 20px;
+      min-height: 24px;
       text-align: center;
       transition: opacity 0.3s, background 0.3s;
       opacity: 0;
@@ -177,19 +177,19 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
+      gap: 3px;
     }
     .gare-heure {
       font-family: 'Barlow Condensed', sans-serif;
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 1.2rem;
       text-align: center;
       transition: color 0.4s;
     }
     .gare-attente {
       font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 600;
-      font-size: 0.82rem;
+      font-weight: 700;
+      font-size: 1rem;
       text-align: center;
       transition: color 0.4s;
     }
@@ -200,18 +200,37 @@
 
     .rail-sep { height: 6px; }
 
-    .noms { display: flex; margin-top: 0.6rem; }
+    .noms { display: flex; margin-top: 0.8rem; }
     .nom {
       flex: 1;
       text-align: center;
-      font-size: 0.78rem;
-      color: var(--muted);
+      font-size: 0.85rem;
+      color: white;
+      font-weight: 700;
       line-height: 1.5;
     }
-    .nom.principale { color: var(--text); font-weight: 700; font-size: 0.85rem; }
-    .nom.terminus   { color: #444; font-style: italic; }
+    .nom.terminus { color: white; font-weight: 700; font-style: normal; }
 
-    /* ── LÉGENDE ── */
+    .sens-label { display: none; }
+
+    /* Flèche sur le rail */
+    .rail-fleche {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--bg2);
+      padding: 0 6px;
+      z-index: 2;
+      white-space: nowrap;
+    }
+    .rail-fleche.droite { right: 0; }
+    .rail-fleche.gauche { left: 0; }
     .legende {
       display: flex;
       gap: 1.5rem;
@@ -251,6 +270,8 @@
 
   <div class="sens-label">→ Trait 1 — Sens Paris (Saint-Lazare)</div>
   <div class="rail">
+    <div class="rail-fleche gauche">Sens Paris</div>
+    <div class="rail-fleche droite">→</div>
     <div class="gare">
       <div class="train-badge" id="bdg-1-poissy"></div>
       <div class="gare-point load" id="pt-1-poissy"></div>
@@ -296,6 +317,8 @@
   <div class="rail-sep"></div>
 
   <div class="rail">
+    <div class="rail-fleche gauche">←</div>
+    <div class="rail-fleche droite">Sens Poissy</div>
     <div class="gare">
       <div class="train-badge" style="opacity:0"></div>
       <div class="gare-point gris"></div>
@@ -337,8 +360,6 @@
       </div>
     </div>
   </div>
-  <div class="sens-label" style="text-align:right; margin-top:0.3rem;">← Trait 2 — Sens Poissy</div>
-
   <div class="noms">
     <div class="nom terminus">Poissy</div>
     <div class="nom">Achères<br>Gc</div>
