@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Graphique Poissy</title>
+  <title>Graphique Poissy — OPERA</title>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
   <style>
     :root {
@@ -18,6 +18,7 @@
       --red:    #e74c3c;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; }
     body {
       background: var(--bg);
       color: var(--text);
@@ -25,84 +26,113 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-      gap: 2rem;
+      padding: 1rem 2rem 1.5rem;
+      gap: 0.8rem;
     }
+
+    /* ── HEADER ── */
     .header {
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .header-left {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 0.4rem;
+      gap: 0.1rem;
     }
-    .header h1 {
+    .projet-nom {
       font-family: 'Barlow Condensed', sans-serif;
       font-weight: 900;
-      font-size: 1.4rem;
+      font-size: 1rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
+      color: var(--muted);
+    }
+    .graphique-nom {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 1.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
       color: white;
+    }
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.2rem;
     }
     .horloge {
       font-family: 'Barlow Condensed', sans-serif;
       font-weight: 700;
-      font-size: 3rem;
+      font-size: 2rem;
       color: white;
       letter-spacing: 0.05em;
     }
-    .refresh-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.7rem;
+    .refresh-info {
+      font-size: 0.62rem;
       color: var(--muted);
-      letter-spacing: 0.06em;
+      letter-spacing: 0.05em;
     }
-    .spinner {
-      width: 13px;
-      height: 13px;
-      border: 2px solid var(--border);
-      border-top-color: var(--muted);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      display: none;
-    }
-    .spinner.actif { display: block; }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── BARRE DE PROGRESSION ── */
+    .progress-wrap {
+      width: 100%;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .progress-bar {
+      height: 100%;
+      background: var(--green);
+      border-radius: 2px;
+      width: 100%;
+      transform-origin: left;
+      transition: background 0.3s;
+    }
+    .progress-bar.epuise { background: var(--orange); }
+
+    /* ── PLAN ── */
     .plan {
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 2.5rem 3.5rem 2rem;
-      width: 100%;
-      max-width: 1000px;
+      padding: 2rem 3rem 1.8rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
+
     .sens-label {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.3rem;
     }
+
     .rail {
       display: flex;
       align-items: center;
       position: relative;
-      height: 110px;
+      height: 130px;
     }
     .rail::before {
       content: '';
       position: absolute;
-      left: 50px; right: 50px;
+      left: 60px; right: 60px;
       top: 50%;
       height: 4px;
       background: var(--border);
       z-index: 0;
     }
+
     .gare {
       flex: 1;
       display: flex;
@@ -110,19 +140,20 @@
       align-items: center;
       position: relative;
       z-index: 1;
-      gap: 5px;
+      gap: 6px;
     }
+
     .train-badge {
       font-family: 'Barlow Condensed', sans-serif;
       font-weight: 800;
-      font-size: 0.72rem;
+      font-size: 0.8rem;
       letter-spacing: 0.03em;
       background: #1a3a8f;
       color: white;
-      padding: 3px 7px;
+      padding: 3px 8px;
       border-radius: 4px;
       white-space: nowrap;
-      min-height: 18px;
+      min-height: 20px;
       text-align: center;
       transition: opacity 0.3s, background 0.3s;
       opacity: 0;
@@ -130,10 +161,11 @@
     .train-badge.visible   { opacity: 1; }
     .train-badge.a-lheure  { background: #1a6b3a; }
     .train-badge.en-retard { background: var(--red); }
+
     .gare-point {
-      width: 30px;
-      height: 30px;
-      border-radius: 6px;
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
       border: 2px solid var(--muted);
       background: var(--bg);
       transition: background 0.5s, border-color 0.5s;
@@ -141,26 +173,26 @@
     .gare-point.vert   { background: var(--green);  border-color: var(--green); }
     .gare-point.orange { background: var(--orange); border-color: var(--orange); }
     .gare-point.rouge  { background: var(--red);    border-color: var(--red); }
-    .gare-point.gris   { background: #333; border-color: #444; border-style: dashed; }
+    .gare-point.gris   { background: #2a2f3f; border-color: #3a4052; border-style: dashed; }
     .gare-point.load   { background: #2a3050; border-color: #3a4060; }
+
     .gare-info {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 2px;
-      min-height: 32px;
     }
     .gare-heure {
       font-family: 'Barlow Condensed', sans-serif;
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: 1rem;
       text-align: center;
       transition: color 0.4s;
     }
     .gare-attente {
       font-family: 'Barlow Condensed', sans-serif;
       font-weight: 600;
-      font-size: 0.75rem;
+      font-size: 0.82rem;
       text-align: center;
       transition: color 0.4s;
     }
@@ -168,44 +200,58 @@
     .orange { color: var(--orange); }
     .rouge  { color: var(--red); }
     .muted  { color: var(--muted); }
-    .rail-sep { height: 8px; }
-    .noms { display: flex; margin-top: 0.7rem; }
+
+    .rail-sep { height: 6px; }
+
+    .noms { display: flex; margin-top: 0.6rem; }
     .nom {
       flex: 1;
       text-align: center;
-      font-size: 0.72rem;
+      font-size: 0.78rem;
       color: var(--muted);
       line-height: 1.5;
     }
-    .nom.principale { color: var(--text); font-weight: 700; }
-    .nom.terminus   { color: #555; font-style: italic; }
+    .nom.principale { color: var(--text); font-weight: 700; font-size: 0.85rem; }
+    .nom.terminus   { color: #444; font-style: italic; }
+
+    /* ── LÉGENDE ── */
     .legende {
       display: flex;
       gap: 1.5rem;
       flex-wrap: wrap;
       justify-content: center;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: var(--muted);
+      flex-shrink: 0;
     }
     .leg-item { display: flex; align-items: center; gap: 0.4rem; }
-    .leg-dot { width: 14px; height: 14px; border-radius: 3px; border: 2px solid currentColor; }
+    .leg-dot { width: 13px; height: 13px; border-radius: 3px; border: 2px solid currentColor; }
     .leg-dot.vert    { color: var(--green);  background: var(--green); }
     .leg-dot.orange  { color: var(--orange); background: var(--orange); }
     .leg-dot.rouge   { color: var(--red);    background: var(--red); }
-    .leg-dot.gris    { color: #444; background: #333; border-style: dashed; }
+    .leg-dot.gris    { color: #444; background: #2a2f3f; border-style: dashed; }
   </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <div class="header">
-  <h1>Graphique Poissy</h1>
-  <div class="horloge" id="horloge">--:--</div>
-  <div class="refresh-row">
-    <div class="spinner" id="spinner"></div>
-    <span id="refresh-info">Chargement…</span>
+  <div class="header-left">
+    <div class="projet-nom">OPERA — Supervision RER A Ouest</div>
+    <div class="graphique-nom">Graphique Poissy</div>
+  </div>
+  <div class="header-right">
+    <div class="horloge" id="horloge">--:--</div>
+    <div class="refresh-info" id="refresh-info">Chargement…</div>
   </div>
 </div>
 
+<!-- BARRE DE PROGRESSION -->
+<div class="progress-wrap">
+  <div class="progress-bar" id="progress-bar"></div>
+</div>
+
+<!-- PLAN DE LIGNE -->
 <div class="plan">
 
   <div class="sens-label">→ Trait 1 — Sens Paris (Saint-Lazare)</div>
@@ -308,6 +354,7 @@
 
 </div>
 
+<!-- LÉGENDE -->
 <div class="legende">
   <div class="leg-item"><div class="leg-dot vert"></div> Prochain train disponible</div>
   <div class="leg-item"><div class="leg-dot orange"></div> Attente modérée</div>
@@ -318,6 +365,7 @@
 <script>
   var PROXY = 'https://rera-proxy.sammy-avcuoglu.workers.dev/proxy';
   var LINE  = 'STIF:Line::C01742:';
+  var INTERVALLE = 45000; // 45 secondes
 
   var STOPS = {
     poissy:   'STIF:StopArea:SP:47874:',
@@ -334,9 +382,9 @@
     sartr:    ['boissy', 'marne', 'torcy', 'chessy', 'defense', 'défense'],
     houilles: ['boissy', 'marne', 'torcy', 'chessy', 'defense', 'défense']
   };
-
   var FILTRE_POISSY = ['poissy'];
 
+  // ── HORLOGE ──
   function majHorloge() {
     var now = new Date();
     var h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
@@ -346,10 +394,34 @@
   setInterval(majHorloge, 1000);
   majHorloge();
 
+  // ── BARRE DE PROGRESSION ──
+  var progressStart = null;
+  var progressRAF   = null;
+
+  function demarrerBarre() {
+    progressStart = Date.now();
+    var bar = document.getElementById('progress-bar');
+    bar.classList.remove('epuise');
+
+    function animer() {
+      var elapsed = Date.now() - progressStart;
+      var pct = Math.min(elapsed / INTERVALLE, 1);
+      bar.style.transform = 'scaleX(' + (1 - pct) + ')';
+      if (pct >= 0.85) bar.classList.add('epuise');
+      if (pct < 1) {
+        progressRAF = requestAnimationFrame(animer);
+      }
+    }
+    if (progressRAF) cancelAnimationFrame(progressRAF);
+    progressRAF = requestAnimationFrame(animer);
+  }
+
+  // ── UTILITAIRES ──
   function formatHeure(isoStr) {
     if (!isoStr) return '--:--';
     var d = new Date(isoStr);
-    return (d.getHours()<10?'0'+d.getHours():d.getHours())+'h'+(d.getMinutes()<10?'0'+d.getMinutes():d.getMinutes());
+    var h = d.getHours(), m = d.getMinutes();
+    return (h<10?'0'+h:h)+'h'+(m<10?'0'+m:m);
   }
 
   function minutesDepuis(isoStr) {
@@ -357,7 +429,6 @@
     return Math.round((new Date(isoStr) - new Date()) / 60000);
   }
 
-  // Seuils provisoires — seront remplacés par des seuils dynamiques jour/heure
   function couleur(attMin) {
     if (attMin === null || attMin < 0) return 'muted';
     if (attMin < 5)  return 'vert';
@@ -407,6 +478,7 @@
     att.className = 'gare-attente ' + etat;
   }
 
+  // ── FETCH UNE GARE ──
   function fetchGare(stopId, filtresDest) {
     return fetch(PROXY + '/stop-monitoring?MonitoringRef=' + encodeURIComponent(stopId), { cache: 'no-store' })
       .then(function(r) { return r.json(); })
@@ -450,11 +522,9 @@
       });
   }
 
+  // ── FETCH TOUTES LES GARES ──
   function fetchAll() {
-    var spinner = document.getElementById('spinner');
-    var info    = document.getElementById('refresh-info');
-    spinner.classList.add('actif');
-    info.textContent = 'Actualisation…';
+    document.getElementById('refresh-info').textContent = 'Actualisation…';
 
     var taches = [
       { trait:'1', gare:'poissy',   stop: STOPS.poissy,   filtres: FILTRE_PARIS.poissy },
@@ -473,13 +543,14 @@
         .then(function(data) { majGareDOM(t.trait, t.gare, data); })
         .catch(function()    { majGareDOM(t.trait, t.gare, null); });
     })).then(function() {
-      spinner.classList.remove('actif');
       var now = new Date();
       var h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
-      info.textContent = 'Actualisé à ' + (h<10?'0'+h:h)+':'+(m<10?'0'+m:m)+':'+(s<10?'0'+s:s) + ' — prochain dans 45s';
+      document.getElementById('refresh-info').textContent =
+        'Actualisé à ' + (h<10?'0'+h:h)+':'+(m<10?'0'+m:m)+':'+(s<10?'0'+s:s);
+      demarrerBarre();
     });
 
-    setTimeout(fetchAll, 45000);
+    setTimeout(fetchAll, INTERVALLE);
   }
 
   fetchAll();
