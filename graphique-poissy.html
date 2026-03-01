@@ -76,15 +76,12 @@
       color: var(--muted);
       letter-spacing: 0.05em;
     }
-
-    /* ── BARRE DE PROGRESSION ── */
     .progress-wrap {
       width: 100%;
       height: 3px;
       background: var(--border);
       border-radius: 2px;
       overflow: hidden;
-      flex-shrink: 0;
     }
     .progress-bar {
       height: 100%;
@@ -243,12 +240,10 @@
   <div class="header-right">
     <div class="horloge" id="horloge">--:--</div>
     <div class="refresh-info" id="refresh-info">Chargement…</div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
   </div>
-</div>
-
-<!-- BARRE DE PROGRESSION -->
-<div class="progress-wrap">
-  <div class="progress-bar" id="progress-bar"></div>
 </div>
 
 <!-- PLAN DE LIGNE -->
