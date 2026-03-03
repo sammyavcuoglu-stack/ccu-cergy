@@ -801,6 +801,10 @@
           var v=visits[i], j=v.MonitoredVehicleJourney||{}, call=j.MonitoredCall||{};
           var lineRef=''; try{lineRef=j.LineRef.value;}catch(e){} if(lineRef!==LINE) continue;
           var dest=''; try{dest=j.DestinationName[0].value;}catch(e){} if(!destinationMatch(dest,filtres)) continue;
+          // Ignorer trains supprimés
+          var deptStatus=(call.DepartureStatus||'').toLowerCase();
+          if(deptStatus==='cancelled'||deptStatus==='canceled') continue;
+          if(j.Monitored===false) continue;
           var dept=call.ExpectedDepartureTime||call.AimedDepartureTime, aimed=call.AimedDepartureTime;
           if(!dept) continue;
           var attMin=minutesDepuis(dept); if(attMin!==null&&attMin<-1) continue;
