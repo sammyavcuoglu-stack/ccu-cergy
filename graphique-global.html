@@ -572,7 +572,7 @@
   var PROXY        = 'https://rera-proxy.sammy-avcuoglu.workers.dev/proxy';
   var LINE         = 'STIF:Line::C01742:';
   var LINE_NAVITIA = 'IDFM:C01742';
-  var INTERVALLE   = 25000;
+  var INTERVALLE   = 45000;
 
   // ── IDs gares ──
   var STOPS = {
@@ -732,7 +732,8 @@
       for (var i=0;i<disruptions.length;i++) {
         var d=disruptions[i], tags=d.tags||[], isA=false;
         for (var t=0;t<tags.length;t++){if(tags[t]==='Ascenseur'){isA=true;break;}} if(isA) continue;
-        var status=(d.status||'').toLowerCase(), titre='', texte='', msgs=d.messages||[];
+        var status=(d.status||'').toLowerCase(); if(status==='past') continue;
+        var titre='', texte='', msgs=d.messages||[];
         for (var m=0;m<msgs.length;m++) {
           var ch=(msgs[m].channel&&msgs[m].channel.name)||'';
           if(ch==='titre'&&!titre) titre=msgs[m].text||'';
