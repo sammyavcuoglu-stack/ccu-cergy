@@ -563,7 +563,7 @@
     // Afficher Canva si fluide, cacher si perturbé
     var panelCanva = document.getElementById('panel-canva');
     if (panelCanva) {
-      var estFluide = (!traficSNCFState || traficSNCFState === '') && !hasRetards;
+      var estFluide = (traficSNCFState === '' || traficSNCFState === 'fluide') && !hasRetards;
       if (estFluide) {
         panelCanva.classList.remove('hidden');
       } else {
