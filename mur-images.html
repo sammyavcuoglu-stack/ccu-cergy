@@ -163,6 +163,43 @@
       height: 100%;
       align-content: start;
     }
+
+    /* ── MODE SCÉNARIO : layout 3 lignes ── */
+    .main-grid.has-scenario {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto 1fr;
+    }
+    .main-grid.has-scenario .col-left {
+      flex-direction: row;
+      gap: 0.5rem;
+    }
+    .main-grid.has-scenario .col-right {
+      display: none;
+    }
+    .main-grid.has-scenario .panel-trafic {
+      flex: 0 0 35%;
+    }
+    .main-grid.has-scenario .panel-retards {
+      flex: 1;
+    }
+    .main-grid.has-scenario .panel-infographie {
+      display: flex !important;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+    /* Bulle trafic compacte en mode scénario */
+    .main-grid.has-scenario .trafic-capsule { padding: 0.3rem 0.5rem; }
+    .main-grid.has-scenario .trafic-label   { font-size: clamp(0.9rem, 2.2vw, 2.8vw); letter-spacing: 0.02em; }
+    .main-grid.has-scenario .panel-trafic   { flex: 0 0 42%; }
+
+    /* Police compacte pour retards en mode scénario */
+    .main-grid.has-scenario .delay-row {
+      padding: 0.15rem 0;
+      border-bottom-width: 1px;
+    }
+    .main-grid.has-scenario .delay-mission { font-size: clamp(0.7rem, 1.8vw, 2.2vw) !important; }
+    .main-grid.has-scenario .delay-mins    { font-size: clamp(0.65rem, 1.6vw, 2vw) !important; }
     .delay-row {
       display: flex; align-items: baseline; gap: 0.6rem;
       padding: 0.6rem 0;
@@ -353,12 +390,12 @@
   </div>
 
   <div class="col-right"><div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;"><div style="font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:clamp(0.9rem,1.6vw,2rem);letter-spacing:.1em;text-transform:uppercase;color:white;text-align:center;padding:.45rem 1rem;background:var(--bg3);border-bottom:1px solid var(--border);">Retards en cours</div><div style="padding:.6rem 1rem;flex:1;overflow:hidden;" id="panel-retards-right"><div style="color:var(--muted);display:flex;align-items:center;justify-content:center;height:100%;">—</div></div></div><div style="display:none;position:absolute;"><div id="panel-comm-sncf"></div><div id="panel-comm-ratp"></div><span id="timer-sncf"></span><span id="timer-ratp"></span></div></div>
-</div>
+  <!-- INFOGRAPHIE (dans la grille, cachée par défaut) -->
+  <div class="panel panel-infographie" id="panel-infographie" style="display:none;">
+    <div class="panel-title" id="infographie-title">🚨 Incident en cours</div>
+    <img class="infographie-img" id="infographie-img" src="" alt="Infographie incident"/>
+  </div>
 
-<!-- INFOGRAPHIE (cachée par défaut) -->
-<div class="panel panel-infographie" id="panel-infographie">
-  <div class="panel-title" id="infographie-title">🚨 Incident en cours</div>
-  <img class="infographie-img" id="infographie-img" src="" alt="Infographie incident"/>
 </div>
 
 <div class="timestamp" id="ts">—</div>
@@ -765,13 +802,17 @@
     var img   = document.getElementById('infographie-img');
     var title = document.getElementById('infographie-title');
 
+    var mainGrid = document.querySelector('.main-grid');
     if (matched) {
       img.src = matched.img;
       title.textContent = matched.title;
-      panel.classList.add('visible');
+      panel.style.display = 'flex';
+      panel.style.flexDirection = 'column';
+      mainGrid.classList.add('has-scenario');
     } else {
-      panel.classList.remove('visible');
+      panel.style.display = 'none';
       img.src = '';
+      mainGrid.classList.remove('has-scenario');
     }
   }
 
