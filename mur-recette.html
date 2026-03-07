@@ -891,8 +891,13 @@ function actuAfficherImage() {
     }, 300000);
     return;
   }
-  var img    = actuListe[actuIndex];
-  var duree  = (img.duree || 10) * 1000;
+  var epinglee = null;
+  for (var e = 0; e < actuListe.length; e++) {
+    if (actuListe[e].epingle) { epinglee = actuListe[e]; break; }
+  }
+
+  var img   = epinglee ? epinglee : actuListe[actuIndex];
+  var duree = epinglee ? (img.duree || 10) * 1000 : (img.duree || 10) * 1000;
   var overlay = document.getElementById('overlay-actu');
   var imgEl   = document.getElementById('actu-img');
   var barre   = document.getElementById('actu-barre');
@@ -903,19 +908,26 @@ function actuAfficherImage() {
   imgEl.src = WORKER_ACTU + '/actu/image/' + encodeURIComponent(img.filename);
   imgEl.onload = function() { imgEl.style.opacity = '1'; };
 
-  compteur.textContent = (actuIndex + 1) + ' / ' + actuListe.length;
-
-  // Barre de progression
-  barre.style.transition = 'none';
-  barre.style.width = '0%';
-  setTimeout(function() {
-    barre.style.transition = 'width ' + (duree / 1000) + 's linear';
+  // Épinglée : pas de compteur, barre infinie
+  if (epinglee) {
+    compteur.textContent = '📌 En diffusion';
+    barre.style.transition = 'none';
     barre.style.width = '100%';
-  }, 50);
+  } else {
+    compteur.textContent = (actuIndex + 1) + ' / ' + actuListe.length;
+    barre.style.transition = 'none';
+    barre.style.width = '0%';
+    setTimeout(function() {
+      barre.style.transition = 'width ' + (duree / 1000) + 's linear';
+      barre.style.width = '100%';
+    }, 50);
+  }
 
   actuTimer = setTimeout(function() {
-    actuIndex++;
-    if (actuIndex >= actuListe.length) actuIndex = 0;
+    if (!epinglee) {
+      actuIndex++;
+      if (actuIndex >= actuListe.length) actuIndex = 0;
+    }
     actuAfficherImage();
   }, duree);
 }
