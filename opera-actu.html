@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OPERA Actu — Administration</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap');
 
   :root {
     --bg: #0a0d14;
@@ -117,7 +117,7 @@
   .topbar {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 16px 24px;
+    padding: 10px 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -127,19 +127,46 @@
   }
 
   .topbar-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 20px;
-    letter-spacing: -0.3px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
   }
 
-  .topbar-title span { color: var(--accent); }
+  .topbar-projet {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .topbar-nom {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: white;
+  }
 
   .topbar-line {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
     color: var(--muted);
     letter-spacing: 0.08em;
+  }
+
+  .footer-credits {
+    text-align: center;
+    padding: 1rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.2);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: 0.5rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
   .status-dot {
@@ -447,9 +474,9 @@
 <!-- APP -->
 <div id="app">
   <div class="topbar">
-    <div>
-      <div class="topbar-title">OPERA <span>Actu</span></div>
-      <div class="topbar-line"><span class="status-dot"></span>ADMINISTRATION</div>
+    <div class="topbar-title">
+      <div class="topbar-projet">Administration</div>
+      <div class="topbar-nom">OPERA Actu</div>
     </div>
     <div class="topbar-line" id="nb-images">0 image(s)</div>
   </div>
@@ -704,5 +731,9 @@
     setTimeout(() => el.classList.remove('show'), 3000);
   }
 </script>
+<div class="footer-credits">
+  OPERA Supervision &nbsp;·&nbsp; Sammy Avcuoglu &nbsp;·&nbsp; Infographies réalisées par Rémi Gayant
+</div>
+
 </body>
 </html>
