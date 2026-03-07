@@ -576,6 +576,8 @@
       label.textContent = 'Fluide';
     }
     if (typeof checkFinService === 'function') checkFinService();
+    // Synchroniser l'overlay ACTU avec l'état trafic
+    if (typeof actuSyncTrafic === 'function') actuSyncTrafic();
   }
 
   // ── CARROUSEL ─────────────────────────────────────────────
@@ -885,8 +887,20 @@ function estFinDeService() {
   return (h >= 2 && h < 4);
 }
 
+function estTraficFluide() {
+  return (traficSNCFState === 'fluide' && !hasRetards);
+}
+
 function actuAfficherImage() {
   if (actuIncident || actuListe.length === 0) return;
+  // Trafic non fluide : masquer l'overlay et réessayer dans 30s
+  if (!estTraficFluide()) {
+    document.getElementById('overlay-actu').style.display = 'none';
+    actuTimer = setTimeout(function() {
+      if (!actuIncident) actuAfficherImage();
+    }, 30000);
+    return;
+  }
   if (estFinDeService()) {
     // Entre 2h et 4h : fin de service prioritaire, on recheck dans 5 min
     document.getElementById('overlay-actu').style.display = 'none';
@@ -927,7 +941,7 @@ function actuStopperPourIncident() {
 
 function actuReprendre() {
   actuIncident = false;
-  if (actuListe.length > 0) {
+  if (actuListe.length > 0 && estTraficFluide()) {
     actuIndex = 0;
     actuAfficherImage();
   }
@@ -942,6 +956,26 @@ checkScenarios = function(messages) {
   if (isIncident && !actuIncident) actuStopperPourIncident();
   else if (!isIncident && actuIncident) actuReprendre();
 };
+
+// Appelée à chaque changement d'état trafic
+function actuSyncTrafic() {
+  if (!estTraficFluide()) {
+    // Trafic perturbé ou retards → masquer immédiatement l'overlay
+    if (actuTimer) clearTimeout(actuTimer);
+    document.getElementById('overlay-actu').style.display = 'none';
+    // Relancer une vérification dans 30s
+    actuTimer = setTimeout(function() {
+      if (!actuIncident) actuAfficherImage();
+    }, 30000);
+  } else if (actuListe.length > 0 && !actuIncident) {
+    // Trafic redevenu fluide et overlay non actif → on peut relancer
+    var overlay = document.getElementById('overlay-actu');
+    if (overlay.style.display === 'none') {
+      actuIndex = 0;
+      actuAfficherImage();
+    }
+  }
+}
 
 // Démarrage au chargement
 actuChargerListe();
