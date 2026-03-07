@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>OPERA — Supervision RER A Ouest</title>
+  <title>OPERA - Mur d'images</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNlMjAwMWEiLz48dGV4dCB4PSIxNiIgeT0iMjIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSIyMCIgZmlsbD0id2hpdGUiPkE8L3RleHQ+PC9zdmc+"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -72,7 +72,7 @@
     /* ── LAYOUT PRINCIPAL ── */
     .main-grid {
       display: grid;
-      grid-template-columns: 3fr 2fr;
+      grid-template-columns: 1fr 1fr;
       gap: 0.5rem;
       flex: 1;
       min-height: 0;
@@ -142,7 +142,6 @@
     }
     .trafic-box.fluide       .trafic-capsule { background: var(--green); }
     .trafic-box.retards      .trafic-capsule { background: #8e6020; }
-    .trafic-box.supprime     .trafic-capsule { background: #f1c40f; }
     .trafic-box.perturbe     .trafic-capsule { background: var(--orange); }
     .trafic-box.tres-perturbe .trafic-capsule { background: var(--red); }
     .trafic-box.interrompu   .trafic-capsule { background: var(--red); }
@@ -162,14 +161,48 @@
       grid-template-columns: 1fr 1fr;
       gap: 0 2rem;
       height: 100%;
-      align-content: stretch;
-      overflow: hidden;
+      align-content: start;
     }
-    .delay-row {
-      display: flex; align-items: center; gap: 0.6rem;
-      padding: 0.3rem 0;
+
+    /* ── MODE SCÉNARIO : layout 3 lignes ── */
+    .main-grid.has-scenario {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto 1fr;
+    }
+    .main-grid.has-scenario .col-left {
+      flex-direction: row;
+      gap: 0.5rem;
+    }
+    .main-grid.has-scenario .col-right {
+      display: none;
+    }
+    .main-grid.has-scenario .panel-trafic {
+      flex: 0 0 35%;
+    }
+    .main-grid.has-scenario .panel-retards {
+      flex: 1;
+    }
+    .main-grid.has-scenario .panel-infographie {
+      display: flex !important;
+      flex-direction: column;
       flex: 1;
       min-height: 0;
+    }
+    /* Bulle trafic compacte en mode scénario */
+    .main-grid.has-scenario .trafic-capsule { padding: 0.3rem 0.5rem; }
+    .main-grid.has-scenario .trafic-label   { font-size: clamp(0.9rem, 2.2vw, 2.8vw); letter-spacing: 0.02em; }
+    .main-grid.has-scenario .panel-trafic   { flex: 0 0 42%; }
+
+    /* Police compacte pour retards en mode scénario */
+    .main-grid.has-scenario .delay-row {
+      padding: 0.15rem 0;
+      border-bottom-width: 1px;
+    }
+    .main-grid.has-scenario .delay-mission { font-size: clamp(0.7rem, 1.8vw, 2.2vw) !important; }
+    .main-grid.has-scenario .delay-mins    { font-size: clamp(0.65rem, 1.6vw, 2vw) !important; }
+    .delay-row {
+      display: flex; align-items: baseline; gap: 0.6rem;
+      padding: 0.6rem 0;
       border-bottom: 2px solid var(--border);
       flex-wrap: nowrap;
       min-width: 0;
@@ -177,26 +210,17 @@
     .delay-row:last-child { border-bottom: none; }
     .delay-mission {
       font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 800; font-size: clamp(1rem, 3.5vw, 4.5vw);
+      font-weight: 800; font-size: 4.5vw;
       color: white; letter-spacing: 0.03em;
       white-space: nowrap; flex-shrink: 0;
     }
     .delay-mins {
       font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700; font-size: clamp(0.9rem, 3vw, 4vw);
+      font-weight: 700; font-size: 4vw;
       white-space: nowrap; flex-shrink: 0;
     }
     .delay-mins.orange { color: var(--orange); }
     .delay-mins.red    { color: var(--red); }
-    /* Adaptation taille selon nombre de trains — max 6 visibles */
-    .delay-cols.few .delay-mission    { font-size: clamp(1.5rem, 4.5vw, 5vw); }
-    .delay-cols.few .delay-mins       { font-size: clamp(1.3rem, 4vw, 4.5vw); }
-    .delay-cols.medium .delay-mission { font-size: clamp(1rem, 3vw, 3.5vw); }
-    .delay-cols.medium .delay-mins    { font-size: clamp(0.9rem, 2.5vw, 3vw); }
-    .delay-cols.medium .delay-row     { padding: 0.25rem 0; }
-    .delay-cols.many .delay-mission   { font-size: clamp(0.65rem, 1.6vw, 2vw); }
-    .delay-cols.many .delay-mins      { font-size: clamp(0.6rem, 1.4vw, 1.8vw); }
-    .delay-cols.many .delay-row       { padding: 0.1rem 0; border-bottom-width: 1px; }
     .no-delay {
       display: flex; align-items: center; justify-content: center;
       height: 100%; flex-direction: column; gap: 1rem;
@@ -216,11 +240,11 @@
 
     /* ── COLONNE DROITE masquée si aucun message ── */
     .col-right { transition: opacity 0.5s; }
-    .col-right.hidden { display: none; }
+    
 
     /* Quand col-right masquée, col-left prend tout l'espace */
     .main-grid.no-comm {
-      grid-template-columns: 1fr;
+      grid-template-columns:1fr 1fr;
     }
 
     /* ── COMMUNICATION (droite) ── */
@@ -315,6 +339,15 @@
       background-size: cover; background-position: center;
     }
     #overlay-fin-service.visible { display: block; }
+
+    .panel-trafic{flex:0 0 auto;min-height:22vh;max-height:40vh;}
+    .trafic-body{padding:1.5vh 1rem;display:flex;align-items:center;justify-content:center;height:100%;}
+    .trafic-capsule{width:95%!important;padding:clamp(.4rem,2vh,2.5rem) clamp(1rem,4vw,5rem)!important;border-radius:clamp(6px,1vw,16px)!important;}
+    .trafic-label{font-size:clamp(2rem,7vw,12vw)!important;}
+    .panel-title{font-size:clamp(.9rem,1.6vw,2rem)!important;}
+    .delay-row{padding:clamp(.2rem,.8vh,1rem) 0!important;}
+    .delay-mission{white-space:nowrap;}
+    .delay-mins{white-space:nowrap;}
   </style>
 </head>
 <body>
@@ -322,7 +355,7 @@
 <!-- HEADER -->
 <header>
   <div class="header-left">
-    <div class="projet-nom">Supervision RER A Ouest</div>
+    <div class="projet-nom">Mur d'images</div>
     <div class="app-nom">OPERA</div>
   </div>
   <div class="header-clock" id="clock">00:00:00</div>
@@ -356,49 +389,13 @@
 
   </div>
 
-  <!-- COLONNE DROITE : Communication SNCF + RATP -->
-  <div class="col-right">
-
-    <!-- Communication SNCF -->
-    <div class="panel panel-comm">
-      <div class="panel-title">
-        <div class="panel-title-wrap">
-          <div class="panel-title-row">
-            <span>🚆 Communication SNCF</span>
-            <span class="panel-timer" id="timer-sncf">20s</span>
-          </div>
-
-        </div>
-      </div>
-      <div class="panel-body" id="panel-comm-sncf">
-        <div class="no-comm">Chargement…</div>
-      </div>
-    </div>
-
-    <!-- Communication RATP -->
-    <div class="panel panel-comm">
-      <div class="panel-title">
-        <div class="panel-title-wrap">
-          <div class="panel-title-row">
-            <span>🚇 Communication RATP</span>
-            <span class="panel-timer" id="timer-ratp">20s</span>
-          </div>
-
-        </div>
-      </div>
-      <div class="panel-body" id="panel-comm-ratp">
-        <div class="no-comm">Chargement…</div>
-      </div>
-    </div>
-
+  <div class="col-right"><div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;"><div style="font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:clamp(0.9rem,1.6vw,2rem);letter-spacing:.1em;text-transform:uppercase;color:white;text-align:center;padding:.45rem 1rem;background:var(--bg3);border-bottom:1px solid var(--border);">Retards en cours</div><div style="padding:.6rem 1rem;flex:1;overflow:hidden;" id="panel-retards-right"><div style="color:var(--muted);display:flex;align-items:center;justify-content:center;height:100%;">—</div></div></div><div style="display:none;position:absolute;"><div id="panel-comm-sncf"></div><div id="panel-comm-ratp"></div><span id="timer-sncf"></span><span id="timer-ratp"></span></div></div>
+  <!-- INFOGRAPHIE (dans la grille, cachée par défaut) -->
+  <div class="panel panel-infographie" id="panel-infographie" style="display:none;">
+    <div class="panel-title" id="infographie-title">🚨 Incident en cours</div>
+    <img class="infographie-img" id="infographie-img" src="" alt="Infographie incident"/>
   </div>
 
-</div>
-
-<!-- INFOGRAPHIE (cachée par défaut) -->
-<div class="panel panel-infographie" id="panel-infographie">
-  <div class="panel-title" id="infographie-title">🚨 Incident en cours</div>
-  <img class="infographie-img" id="infographie-img" src="" alt="Infographie incident"/>
 </div>
 
 <div class="timestamp" id="ts">—</div>
@@ -407,7 +404,7 @@
 <script>
   var PROXY        = 'https://rera-proxy.sammy-avcuoglu.workers.dev/proxy';
   var STOPS        = [
-    'STIF:StopArea:SP:43191:',  // Sartrouville
+    'STIF:StopArea:SP:46647:',  // Achères Grand Cormier
     'STIF:StopArea:SP:44559:',  // Cergy Prefecture
     'STIF:StopArea:SP:43082:'   // Houilles-Carrieres sur Seine
   ];
@@ -546,7 +543,7 @@
     for (var n = 0; n < retards.length; n++) newPrev[retards[n].mission] = true;
     prevMissions = newPrev;
 
-    var nbTotal = retards.length; var sizeClass = nbTotal <= 6 ? 'few' : nbTotal <= 10 ? 'medium' : 'many'; el.innerHTML = '<div class="delay-cols ' + sizeClass + '"><div>' + buildCol(col1) + '</div><div>' + buildCol(col2) + '</div></div>';
+    el.innerHTML='<div style="display:flex;flex-direction:column;">'+buildCol(col1)+'</div>';var elR=document.getElementById('panel-retards-right');if(elR){elR.innerHTML=col2.length?'<div style="display:flex;flex-direction:column;">'+buildCol(col2)+'</div>':'<div style="color:var(--muted);display:flex;align-items:center;justify-content:center;height:100%;">—</div>';}var n=retards.length;var vwM=n<=2?9:n<=4?7:n<=6?5.5:4;document.querySelectorAll('.delay-mission').forEach(function(e){e.style.fontSize=vwM+'vw';});document.querySelectorAll('.delay-mins').forEach(function(e){e.style.fontSize=(vwM*0.88)+'vw';});
   }
 
   // ── ÉTAT TRAFIC ───────────────────────────────────────────
@@ -571,9 +568,6 @@
     } else if (traficSNCFState === 'perturbe') {
       box.classList.add('perturbe');
       label.textContent = 'Perturbé';
-    } else if (traficSNCFState === 'supprime') {
-      box.classList.add('supprime');
-      label.textContent = 'Masque 40';
     } else if (hasRetards) {
       box.classList.add('retards');
       label.textContent = 'Retards';
@@ -588,7 +582,7 @@
   var carousels = {};
   var commHasMessages = { sncf: false, ratp: false };
 
-  function updateCommColumnVisibility() {
+  function updateCommColumnVisibility(){return;
     var colRight = document.querySelector('.col-right');
     var mainGrid = document.querySelector('.main-grid');
     var hasAny = commHasMessages.sncf || commHasMessages.ratp;
@@ -656,15 +650,7 @@
     var items = [];
     for (var i = 0; i < msgs.length; i++) {
       var body = '';
-      // Prendre le segment Message le plus long (le plus complet)
-      try {
-        var segments = msgs[i].Content.Message || [];
-        for (var s = 0; s < segments.length; s++) {
-          var val = (segments[s].MessageText && segments[s].MessageText.value) || '';
-          val = val.replace(/<[^>]+>/g, ' ').replace(/  +/g, ' ').trim();
-          if (val.length > body.length) body = val;
-        }
-      } catch(e) {}
+      try { body = msgs[i].Content.Message[0].MessageText.value; } catch(e) {}
       if (!body) continue;
       // Heure de publication
       var pubTime = '';
@@ -685,7 +671,6 @@
     var hasInterrompu   = false;
     var hasTresPerturbe = false;
     var hasPerturbe     = false;
-    var hasSupprime     = false;
     var messages        = [];
 
     for (var i = 0; i < disruptions.length; i++) {
@@ -724,18 +709,16 @@
 
       // Logique état trafic
       var low = affichage.toLowerCase();
-      var isInterrompu    = low.indexOf('interrompu') !== -1;
-      var isTravaux       = low.indexOf('travaux') !== -1;
-      var isTresPerturbe  = low.indexOf('très perturbé') !== -1 || low.indexOf('tres perturbe') !== -1;
-      var isPerturbe      = low.indexOf('perturbé') !== -1 || low.indexOf('perturbe') !== -1;
-      var isSupprime      = low.indexOf('train supprimé') !== -1 || low.indexOf('train supprime') !== -1;
+      var isInterrompu   = low.indexOf('interrompu') !== -1;
+      var isTravaux      = low.indexOf('travaux') !== -1;
+      var isTresPerturbe = low.indexOf('très perturbé') !== -1 || low.indexOf('tres perturbe') !== -1;
+      var isPerturbe     = low.indexOf('perturbé') !== -1 || low.indexOf('perturbe') !== -1;
 
       if (isInterrompu && isTravaux) continue;
       if (isTravaux && !isInterrompu) continue;
 
       if (isInterrompu)        hasInterrompu   = true;
       else if (isTresPerturbe) hasTresPerturbe = true;
-      else if (isSupprime)     hasSupprime     = true;
       else if (isPerturbe)     hasPerturbe     = true;
       else                     hasPerturbe     = true;
     }
@@ -744,7 +727,6 @@
     if (hasInterrompu)        traficSNCFState = 'interrompu';
     else if (hasTresPerturbe) traficSNCFState = 'tres-perturbe';
     else if (hasPerturbe)     traficSNCFState = 'perturbe';
-    else if (hasSupprime)     traficSNCFState = 'supprime';
     else                      traficSNCFState = 'fluide';
     applyTraficState();
 
@@ -820,13 +802,17 @@
     var img   = document.getElementById('infographie-img');
     var title = document.getElementById('infographie-title');
 
+    var mainGrid = document.querySelector('.main-grid');
     if (matched) {
       img.src = matched.img;
       title.textContent = matched.title;
-      panel.classList.add('visible');
+      panel.style.display = 'flex';
+      panel.style.flexDirection = 'column';
+      mainGrid.classList.add('has-scenario');
     } else {
-      panel.classList.remove('visible');
+      panel.style.display = 'none';
       img.src = '';
+      mainGrid.classList.remove('has-scenario');
     }
   }
 
@@ -857,6 +843,109 @@
 
 <!-- OVERLAY FIN DE SERVICE -->
 <div id="overlay-fin-service"></div>
+
+<!-- OVERLAY OPERA ACTU — plein écran par-dessus tout -->
+<div id="overlay-actu" style="display:none;position:fixed;inset:0;z-index:200;background:#000;flex-direction:column;align-items:center;justify-content:center;">
+  <img id="actu-img" src="" alt="Actu" style="max-width:100%;max-height:100%;object-fit:contain;transition:opacity 0.5s;">
+</div>
+
+<script>
+// ── OPERA ACTU — OVERLAY PLEIN ÉCRAN ─────────────────────────────────────
+var WORKER_ACTU  = 'https://rera-proxy.sammy-avcuoglu.workers.dev';
+var actuListe    = [];
+var actuIndex    = 0;
+var actuTimer    = null;
+var actuIncident = false;
+var DUREE_FLUIDE = 30;   // secondes entre deux passages du carrousel
+
+function actuChargerListe() {
+  fetch(WORKER_ACTU + '/actu/liste')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      actuListe = (data || []).filter(function(img) { return img.actif; });
+      if (actuListe.length === 0) {
+        // Plus aucune image active : fermer l'overlay immédiatement
+        if (actuTimer) clearTimeout(actuTimer);
+        document.getElementById('overlay-actu').style.display = 'none';
+      } else if (!actuIncident) {
+        actuDemarrer();
+      }
+    })
+    .catch(function() {});
+  setTimeout(actuChargerListe, 30000); // recharge toutes les 30s
+}
+
+function actuDemarrer() {
+  actuIndex = 0;
+  actuAfficherImage();
+}
+
+function estFinDeService() {
+  var h = new Date().getHours();
+  return (h >= 2 && h < 4);
+}
+
+function actuAfficherImage() {
+  if (actuIncident || actuListe.length === 0) return;
+  if (estFinDeService()) {
+    // Entre 2h et 4h : fin de service prioritaire, on recheck dans 5 min
+    document.getElementById('overlay-actu').style.display = 'none';
+    actuTimer = setTimeout(function() {
+      if (!actuIncident) actuAfficherImage();
+    }, 300000);
+    return;
+  }
+  var epinglee = null;
+  for (var e = 0; e < actuListe.length; e++) {
+    if (actuListe[e].epingle) { epinglee = actuListe[e]; break; }
+  }
+
+  var img   = epinglee ? epinglee : actuListe[actuIndex];
+  var duree = epinglee ? (img.duree || 10) * 1000 : (img.duree || 10) * 1000;
+  var overlay = document.getElementById('overlay-actu');
+  var imgEl   = document.getElementById('actu-img');
+
+  overlay.style.display = 'flex';
+  imgEl.style.opacity = '0';
+  imgEl.src = WORKER_ACTU + '/actu/image/' + encodeURIComponent(img.filename);
+  imgEl.onload = function() { imgEl.style.opacity = '1'; };
+
+  actuTimer = setTimeout(function() {
+    if (!epinglee) {
+      actuIndex++;
+      if (actuIndex >= actuListe.length) actuIndex = 0;
+    }
+    actuAfficherImage();
+  }, duree);
+}
+
+function actuStopperPourIncident() {
+  actuIncident = true;
+  if (actuTimer) clearTimeout(actuTimer);
+  document.getElementById('overlay-actu').style.display = 'none';
+}
+
+function actuReprendre() {
+  actuIncident = false;
+  if (actuListe.length > 0) {
+    actuIndex = 0;
+    actuAfficherImage();
+  }
+}
+
+// Hooker checkScenarios pour détecter les incidents
+var _origCheckScenarios = checkScenarios;
+checkScenarios = function(messages) {
+  _origCheckScenarios(messages);
+  var panel = document.getElementById('panel-infographie');
+  var isIncident = panel && panel.style.display !== 'none';
+  if (isIncident && !actuIncident) actuStopperPourIncident();
+  else if (!isIncident && actuIncident) actuReprendre();
+};
+
+// Démarrage au chargement
+actuChargerListe();
+</script>
 
 <script>
   // ── OVERLAY FIN DE SERVICE 02h00-04h00 ──
