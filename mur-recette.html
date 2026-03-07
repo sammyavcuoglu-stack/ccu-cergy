@@ -492,6 +492,9 @@
         var v    = visits[i];
         var call = (v.MonitoredVehicleJourney && v.MonitoredVehicleJourney.MonitoredCall) || {};
         var j2   = v.MonitoredVehicleJourney || {};
+        // Ignorer les trains supprimés/annulés
+        if (v.MonitoredVehicleJourney && v.MonitoredVehicleJourney.Monitored === false) continue;
+        if (call.ArrivalStatus === 'cancelled' || call.DepartureStatus === 'cancelled') continue;
         var dept = call.ExpectedDepartureTime || call.AimedDepartureTime;
         var aimed = call.AimedDepartureTime;
         if (!dept || !aimed) continue;
