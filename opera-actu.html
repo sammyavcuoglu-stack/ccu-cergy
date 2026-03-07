@@ -507,23 +507,31 @@
   });
 
   async function login() {
-    const pwd = document.getElementById('pwd-input').value;
+    const pwd = document.getElementById('pwd-input').value.trim();
     if (!pwd) return;
-    // Vérification en chargeant la liste
+
+    // On vérifie le mot de passe en tentant un save vide
     try {
-      const r = await fetch(`${WORKER}/actu/liste`);
-      if (r.ok) {
-        PASSWORD = pwd;
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        chargerListe();
+      const r = await fetch(`${WORKER}/actu/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwd, liste: [] })
+      });
+      // On recharge ensuite la vraie liste
+      const check = await fetch(`${WORKER}/actu/liste`);
+      const data = await check.json();
+      if (r.status === 401) {
+        document.getElementById('login-error').style.display = 'block';
+        return;
       }
-    } catch(e) {
-      // On tente quand même avec le mot de passe
       PASSWORD = pwd;
+      liste = Array.isArray(data) ? data : [];
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('app').style.display = 'block';
-      chargerListe();
+      renderListe();
+    } catch(e) {
+      document.getElementById('login-error').style.display = 'block';
+      document.getElementById('login-error').textContent = 'Erreur de connexion au serveur';
     }
   }
 
